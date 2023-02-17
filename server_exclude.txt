@@ -1,0 +1,13 @@
+syn2/
+work/
+run/
+netlist/
+netlist2/
+src2/
+ssram-example/
+clean.sh
+get_server.sh
+put_server.sh
+server_exclude.txt
+ssh.sh
+*~
