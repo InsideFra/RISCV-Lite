@@ -319,18 +319,39 @@ class BLE_Class(Instruction):
         # TODO: Implement _BLE function
         raise NotImplementedError()
 
+class BEQ_Class(Instruction):
+    pseudo = "BEQ"
+    def __init__(self):
+        self.description =  "BEQ: Jump to **PC+imm** if **RS1 == RS2**."
+        self.func =  self._BEQ
+        self.arg1 =  "rs1"
+        self.arg2 =  "rs2"
+        self.arg3 =  "rd"
+        self.arg4 =  "RF"
+        self.funct3 =  0b000
+        self.funct7 =  0b00000
+    
+    def _BEQ(self, rs1, rs2, rd, RF: RegisterFileClass):
+        assert type(rs1) == int
+        assert type(rs2) == int
+        assert type(rd) == int
+        assert type(RF) == RegisterFileClass
+        
+        # TODO: Implement _BEQ function
+        raise NotImplementedError()
+
 instruction_list = {
     # R-Type
     "R-Type": {
-        "ADD": {"class": ADD_Class,     "opcode": 0b0110011, "funct3": 0b000, "funct7": 0b00000},
-        "XOR": {"class": XOR_Class,     "opcode": 0b0110011, "funct3": 0b100, "funct7": 0b00000},
-        "SUB": {"class": SUB_Class,     "opcode": 0b0110011, "funct3": 0b000, "funct7": 0b01000},
+        "ADD": {"class": ADD_Class,     "opcode": 0b0110011, "funct3": 0b000, "funct7": 0b0000000},
+        "XOR": {"class": XOR_Class,     "opcode": 0b0110011, "funct3": 0b100, "funct7": 0b0000000},
+        "SUB": {"class": SUB_Class,     "opcode": 0b0110011, "funct3": 0b000, "funct7": 0b0100000},
     },
 
     # I-Type
     "I-Type": {
-        "SLLI": {"class": SLLI_Class,   "opcode": 0b0010011, "funct3": 0b001, "funct7": 0b00000},
-        "SRAI": {"class": SRAI_Class,   "opcode": 0b0010011, "funct3": 0b101, "funct7": 0b01000},
+        "SLLI": {"class": SLLI_Class,   "opcode": 0b0010011, "funct3": 0b001, "funct7": None},
+        "SRAI": {"class": SRAI_Class,   "opcode": 0b0010011, "funct3": 0b101, "funct7": None},
         "ADDI": {"class": ADDI_Class,   "opcode": 0b0010011, "funct3": 0b000, "funct7": None},
         "LW":   {"class": LW_Class,     "opcode": 0b0000011, "funct3": 0b010, "funct7": None},
         "JALR": {"class": JALR_Class,   "opcode": 0b1100111, "funct3": 0b000, "funct7": None},
@@ -354,8 +375,12 @@ instruction_list = {
 
     # B-Type
     "B-Type": {
-        "BNE":   {"class": BNE_Class,   "opcode": 0b1100011, "funct3": 0b001, "funct7": None},
-        "BLE":   {"class": BLE_Class,   "opcode": 0b1100011, "funct3": 0b101, "funct7": None},
+        "BNE":  {"class": BNE_Class,    "opcode": 0b1100011, "funct3": 0b001, "funct7": None},
+        "BLE":  {"class": BLE_Class,    "opcode": 0b1100011, "funct3": 0b101, "funct7": None},
+    },
+
+    "N-TYPE": {
+        "NOP":  {"class": NOP_Class,    "opcode": 0b0000000, "funct3": 0b000, "funct7": None},
     }
 }
 

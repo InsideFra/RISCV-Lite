@@ -64,27 +64,6 @@ class PipelineClass():
         else:
             self.FETCH_INSTR = NOP_Class()
 
-def instruction_decoder(instr: int):
-    # Read the OPCODE
-    opcode_mask = 0b1111111
-    opcode = instr & opcode_mask
-
-    # Get the type of the instruction
-    instr_type = None
-    funct7 = None
-    funct3 = None
-    rs1 = None
-    rs2 = None
-    rd = None
-    imm = None
-    if instr_type == "R":
-        pass
-    elif instr_type == "I":
-        pass
-    elif instr_type == "S":
-        pass
-    elif instr_type == "U":
-        pass
 
 if __name__ == "__main__":
     RF = RegisterFileClass()
