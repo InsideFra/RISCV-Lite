@@ -1,21 +1,20 @@
 from verification.register_file import RegisterFileClass
 class Instruction():
     def __init__(self):
-        pass
+        self.opcode =  get_opcode_from_pseudo(self.pseudo)
+        self.I_Type =  get_I_type_from_pseudo(self.pseudo)
 
 # S-Type
 class SW_Class(Instruction):
     pseudo = "SW"
     def __init__(self):
-        self.opcode =  0b0100011
         self.description =  "SW: Store the word (32bit) inside **RS2** into Memory Address **RS1 + IMM**."
-        self.func =  self._LUI
+        self.func =  self._SW
         self.arg1 =  "rs1"
         self.arg2 =  "rs2"
         self.arg3 =  "imm"
         self.arg4 =  "RF"
         self.arg5 =  "Memory"
-        self.I_Type =  "S"
     
     def _SW(self, rs1, rs2, imm, RF: RegisterFileClass, Memory):
         assert type(rs1) == int
@@ -29,13 +28,12 @@ class SW_Class(Instruction):
 class AUIPC_Class(Instruction):
     pseudo = "AUIPC"
     def __init__(self):
-        self.opcode =  0b0010111
         self.description =  "AUIPC: Loads **imm << 12** + **PC** in **RD**."
         self.func =  self._LUI
         self.arg1 =  "imm"
         self.arg2 =  "rd"
         self.arg3 =  "RF"
-        self.I_Type =  "U"
+        super().__init__()
     
     def _AUIPC(self, imm, rd, RF: RegisterFileClass):
         assert type(imm) == int
@@ -47,13 +45,11 @@ class AUIPC_Class(Instruction):
 class LUI_Class(Instruction):
     pseudo = "LUI"
     def __init__(self):
-        self.opcode =  0b0110111
         self.description =  "LUI: Loads **imm << 12** in **RD**."
         self.func =  self._LUI
         self.arg1 =  "imm"
         self.arg2 =  "rd"
         self.arg4 =  "RF"
-        self.I_Type =  "U"
     
     def _LUI(self, imm, rd, RF: RegisterFileClass):
         assert type(imm) == int
@@ -72,10 +68,8 @@ class SUB_Class(Instruction):
         self.arg2 =  "rs2"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  0b01100
         self.funct3 =  0b000
         self.funct7 =  0b01000
-        self.I_Type =  "R"
     
     def _SUB(self, rs1, rs2, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -98,10 +92,8 @@ class ADD_Class(Instruction):
         self.arg2 =  "rs2"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  0b01100
         self.funct3 =  0b000
         self.funct7 =  0b00000
-        self.I_Type =  "R"
     
     def _ADD(self, rs1, rs2, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -124,10 +116,8 @@ class XOR_Class(Instruction):
         self.arg2 =  "rs2"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  0b01100
         self.funct3 =  0b100
         self.funct7 =  0b00000
-        self.I_Type =  "R"
     
     def _XOR(self, rs1, rs2, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -151,10 +141,8 @@ class LW_Class(Instruction):
         self.arg2 =  "imm"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  0b0000011
         self.funct3 =  0b010
         self.funct7 =  None
-        self.I_Type =  "I"
     
     def _LW(self, rs1, imm, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -174,10 +162,8 @@ class SRAI_Class(Instruction):
         self.arg2 =  "imm"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  0b0010011
         self.funct3 =  0b101
         self.funct7 =  0b01000
-        self.I_Type =  "I"
     
     def _SRAI(self, rs1, imm, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -197,10 +183,8 @@ class ADDI_Class(Instruction):
         self.arg2 =  "imm"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  0b0010011
         self.funct3 =  0b000
         self.funct7 =  0b00000
-        self.I_Type =  "I"
     
     def _SLLI(self, rs1, imm, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -220,10 +204,8 @@ class SLLI_Class(Instruction):
         self.arg2 =  "imm"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  0b0010011
         self.funct3 =  0b001
         self.funct7 =  0b00000
-        self.I_Type =  "I"
     
     def _SLLI(self, rs1, imm, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -243,10 +225,8 @@ class JALR_Class(Instruction):
         self.arg2 =  "imm"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  get_opcode_from_pseudo(self.pseudo)
         self.funct3 =  0b001
         self.funct7 =  0b00000
-        self.I_Type =  get_I_type_from_pseudo(self.pseudo)
     
     def _JALR(self, rs1, imm, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -265,10 +245,8 @@ class NOP_Class(Instruction):
         self.arg2 =  "imm"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  0b00100
         self.funct3 =  0b000
         self.funct7 =  None
-        self.I_Type =  "I"
     
     def _NOP(self, rs1, imm, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -287,10 +265,8 @@ class JAL_Class(Instruction):
         self.arg1 =  "rs1"
         self.arg2 =  "rd"
         self.arg3 =  "RF"
-        self.opcode =  get_opcode_from_pseudo(self.pseudo)
         self.funct3 =  0b001
         self.funct7 =  0b00000
-        self.I_Type =  get_I_type_from_pseudo(self.pseudo)
     
     def _JAL(self, rs1, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -310,10 +286,8 @@ class BNE_Class(Instruction):
         self.arg2 =  "rs2"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  get_opcode_from_pseudo(self.pseudo)
         self.funct3 =  0b001
         self.funct7 =  0b00000
-        self.I_Type =  get_I_type_from_pseudo(self.pseudo)
     
     def _BNE(self, rs1, rs2, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -333,10 +307,8 @@ class BLE_Class(Instruction):
         self.arg2 =  "rs2"
         self.arg3 =  "rd"
         self.arg4 =  "RF"
-        self.opcode =  get_opcode_from_pseudo(self.pseudo)
         self.funct3 =  0b101
         self.funct7 =  0b00000
-        self.I_Type =  get_I_type_from_pseudo(self.pseudo)
     
     def _BLE(self, rs1, rs2, rd, RF: RegisterFileClass):
         assert type(rs1) == int
@@ -366,24 +338,24 @@ instruction_list = {
     
     # U-Type
     "U-Type" : { 
-        "LUI":  {"class": LUI_Class,    "opcode": 0b0110111},
-        "AUIPC":{"class": AUIPC_Class,  "opcode": 0b0010111},
+        "LUI":  {"class": LUI_Class,    "opcode": 0b0110111, "funct3": None, "funct7": None},
+        "AUIPC":{"class": AUIPC_Class,  "opcode": 0b0010111, "funct3": None, "funct7": None},
     },
 
     # S-Type
     "S-Type": {
-        "SW":   {"class": SW_Class,     "opcode": 0b0100011},
+        "SW":   {"class": SW_Class,     "opcode": 0b0100011, "funct3": None, "funct7": None},
     },
 
     # J-Type
     "J-Type": {
-        "JAL":   {"class": JAL_Class,   "opcode": 0b1101111},
+        "JAL":   {"class": JAL_Class,   "opcode": 0b1101111, "funct3": None, "funct7": None},
     },
 
     # B-Type
     "B-Type": {
-        "BNE":   {"class": BNE_Class,   "opcode": 0b1100011, "funct3": 0b001},
-        "BLE":   {"class": BLE_Class,   "opcode": 0b1100011, "funct3": 0b101},
+        "BNE":   {"class": BNE_Class,   "opcode": 0b1100011, "funct3": 0b001, "funct7": None},
+        "BLE":   {"class": BLE_Class,   "opcode": 0b1100011, "funct3": 0b101, "funct7": None},
     }
 }
 
@@ -394,6 +366,9 @@ def get_opcode_from_pseudo(pseudo: str) -> int:
             opcode = item[pseudo]["opcode"]
     assert opcode != -1
     return opcode
+
+def get_funct3_from_pseudo(pseudo: str) -> int:
+    pass
 
 def get_I_type_from_pseudo(pseudo: str) -> str:
     I_type = ""
