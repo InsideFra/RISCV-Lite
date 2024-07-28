@@ -1,8 +1,33 @@
-from verification.register_file import RegisterFileClass
+from register_file import RegisterFileClass
+from memory import DataMemory
+from adder import Adder
+from shifter import ShifterModule
+
 class Instruction():
     def __init__(self):
         self.opcode =  get_opcode_from_pseudo(self.pseudo)
         self.I_Type =  get_I_type_from_pseudo(self.pseudo)
+    
+    def decode_stage(self, rs1: int, rs2: int, imm: int, RF: RegisterFileClass, shifter: ShifterModule):
+        from simulator import DE_EX
+        self.DE_EX = DE_EX()
+        self._decode_stage(rs1=rs1, rs2=rs2, imm=imm, RF=RF, shifter=shifter)
+        return self.DE_EX
+    
+    def execute_stage(self, rs1: int, imm: int, adder: Adder):
+        from simulator import EX_MEM
+        self.EX_MEM = EX_MEM()
+        self._execute_stage(rs1=rs1, imm=imm, adder=adder)
+        return self.EX_MEM
+    
+    def memory_stage(self, addr: int, rs2: int, memory: DataMemory):
+        from simulator import MEM_WB
+        self.MEM_WB = MEM_WB()
+        self._memory_stage(addr=addr, rs2=rs2, memory=memory)
+        return self.MEM_WB
+    
+    def writeback_stage(self) -> None:
+        pass
 
 # S-Type
 class SW_Class(Instruction):
@@ -15,14 +40,86 @@ class SW_Class(Instruction):
         self.arg3 =  "imm"
         self.arg4 =  "RF"
         self.arg5 =  "Memory"
+
+        self.rs1_value_buffer = None
+        self.rs2_value_buffer = None
     
-    def _SW(self, rs1, rs2, imm, RF: RegisterFileClass, Memory):
+    def _SW(self, rs1, rs2, imm, RF: RegisterFileClass, Memory: DataMemory, adder: Adder):
+        """Behavioral description of the SW instruction
+
+        Args:
+            rs1 (_type_): rs1 address
+            rs2 (_type_): rs2 address
+            imm (_type_): Value of the immediate field in the instruction 
+            RF (RegisterFileClass): The register file class
+            Memory (DataMemory): The memory class
+            adder (Adder): The adder class
+        """
         assert type(rs1) == int
         assert type(rs2) == int
         assert type(imm) == int
         assert type(RF) == RegisterFileClass
-        # TODO: Implement _SW function
-        raise NotImplementedError()
+        
+        rs1_value = RF.get_value_from_register(rs1)
+        rs2_value = RF.get_value_from_register(rs2)
+        addr_value = adder.sum(rs1_value, imm)
+        Memory.store(addr_value, rs2_value)
+
+    def decode_stage(self, rs1: int, rs2: int, RF: RegisterFileClass) -> tuple[int, int]:
+        """Call this function to know what the function does in the decode stage
+
+        Args:
+            rs1 (int): rs1 address
+            rs2 (int): rs2 address
+            RF (RegisterFileClass): Register File Class
+        
+        Returns:
+            tuple: ..
+        """
+        assert type(rs1) == int
+        assert type(rs2) == int
+        
+        rs1_value = RF.get_value_from_register(rs1)
+        rs2_value = RF.get_value_from_register(rs2)
+        return (rs1_value, rs2_value)
+    
+    def execute_stage(self, rs1: int, imm: int, adder: Adder) -> int:
+        """Call this function to know what the function does in the decode stage
+
+        Args:
+            rs1 (int): rs1 value from pipeline registers
+            imm (int): imm value from pipeline registers
+            adder (Adder): The adder class in the Execution stage
+
+        Returns:
+            int: The result of the adder
+        """
+        assert type(rs1) == int
+        assert type(imm) == int
+        
+        addr_value = adder.sum(rs1, imm)
+        return addr_value
+    
+    def memory_stage(self, addr: int, rs2: int, memory: DataMemory) -> None:
+        """Call this function to know what the function does in the writeback stage
+
+        Args:
+            addr (int): The result of the adder from the pipeline register
+            rs2 (int): The rs2 register value from the pipeline register
+            memory (DataMemory): The memory class
+        """
+        assert type(addr) == int
+        assert type(rs2) == int
+
+        memory.store(addr, rs2)
+    
+    def writeback_stage(self) -> None:
+        """Call this function to know what the function does in the writeback stage
+
+        Returns:
+            None: No return
+        """
+        return None
 
 # U-Type
 class AUIPC_Class(Instruction):
@@ -35,12 +132,64 @@ class AUIPC_Class(Instruction):
         self.arg3 =  "RF"
         super().__init__()
     
-    def _AUIPC(self, imm, rd, RF: RegisterFileClass):
+    def _AUIPC(self, pc: int, imm: int , rd: int , RF: RegisterFileClass):
+        assert type(int) == int
         assert type(imm) == int
         assert type(rd) == int
         assert type(RF) == RegisterFileClass
-        # TODO: Implement _AUIPC function
-        raise NotImplementedError()
+        imm_shifted = imm << 12 
+        value = pc + imm_shifted
+        RF.write_value_into_register(rd, value)
+    
+    def _decode_stage(self, **kwargs) -> int:
+        """Call this function to know what the function does in the decode stage
+        Args:
+            imm (int): The immediate value
+        
+        Returns:
+            int: The immediate shifted left by 12 positions
+        """
+        assert "shifter" in kwargs.keys()
+        shifter: ShifterModule = kwargs["shifter"]
+        imm = kwargs["imm"]
+        imm_value = shifter.shift12(imm)
+        
+        self.DE_EX.imm_value = imm_value 
+    
+    def _execute_stage(self, pc: int, imm_shifted: int, adder: Adder) -> int:
+        """Call this function to know what the function does in the decode stage
+
+        Args:
+            pc (int): Program Counter value from pipeline registers
+            imm_shifted (int): imm value (shifted) from pipeline registers
+            adder (Adder): The adder class in the Execution stage
+
+        Returns:
+            int: The result of the adder
+        """
+        assert type(pc) == int
+        assert type(imm_shifted) == int
+        
+        value = adder.sum(pc, imm_shifted)
+        return value
+    
+    def _memory_stage(self) -> None:
+        """Call this function to know what the function does in the writeback stage
+        """
+        return None
+    
+    def _writeback_stage(self, rd: int, value: int, RF: RegisterFileClass) -> None:
+        """Call this function to know what the function does in the writeback stage
+        Args:
+            rd (int): The rd address from pipeline register
+            value (int): Adder result from pipeline register
+            RF (RegisterFileClass): RegisterFileClass 
+
+        Returns:
+            None: No return
+        """
+        RF.write_value_into_register(rd, value)
+        return None
 
 class LUI_Class(Instruction):
     pseudo = "LUI"
@@ -255,6 +404,23 @@ class NOP_Class(Instruction):
         assert type(RF) == RegisterFileClass
         # TODO: Implement _NOP class
         raise NotImplementedError()
+    
+    def _decode_stage(self, **kwargs) -> None:
+        """Call this function to know what the function does in the decode stage
+        """
+    
+    def _execute_stage(self, **kwargs) -> None:
+        """Call this function to know what the function does in the decode stage
+        """
+    
+    def _memory_stage(self, **kwargs) -> None:
+        """Call this function to know what the function does in the writeback stage
+        """
+        return None
+    
+    def _writeback_stage(self, **kwargs) -> None:
+        """Call this function to know what the function does in the writeback stage
+        """
 
 # J-TYPE
 class JAL_Class(Instruction):

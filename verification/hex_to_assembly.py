@@ -2,7 +2,7 @@ import sys
 print (sys.path)
 sys.path.append("/home/francesco/RISCV-Lite/")
 
-from verification.instruction import instruction_list
+from instruction import instruction_list
 
 def instruction_decoder(instr: int):
     
@@ -28,23 +28,27 @@ def instruction_decoder(instr: int):
     # Get the type of the instruction
     instr_type = None
     pseudo = None
+    instr_class = None
     for i_type, item1 in instruction_list.items():
         for i_pseudo, item2 in item1.items():
             if item2["opcode"] == opcode:
                 if item2["funct3"] == None:
                     instr_type = i_type
                     pseudo = i_pseudo
+                    instr_class = item2["class"]
                     break
         
                 if item2["funct3"] == funct3:
                     if item2["funct7"] == None:
                         instr_type = i_type
                         pseudo = i_pseudo
+                        instr_class = item2["class"]
                         break
                     
                     if item2["funct7"] == funct7:
                         instr_type = i_type
                         pseudo = i_pseudo
+                        instr_class = item2["class"]
                         break
             else:
                 continue
@@ -115,7 +119,8 @@ def instruction_decoder(instr: int):
         return
     else:
         raise NotImplementedError()
-    pass
+
+    return instr_class
 
 if __name__ == "__main__":
     with open('sim/main_hex.txt', 'r') as file:
