@@ -4,29 +4,55 @@ Behavioral and Semi-Structural simulator.
 """
 from instruction import NOP_Class
 
+class Register():
+    def __init__(self):
+        self.current_value = 0
+        self.new_value = 0
+        self.enable = 1
+    
+    def clockPulse(self):
+        self.current_value = self.new_value
+    
+    def update_new_value(self, new_value):
+        self.new_value = new_value
+    
+    def get_value(self):
+        return self.current_value
+
+register_list = []
+def create_new_register() -> Register:
+    register_list.append(Register())
+    return register_list[-1]
+
 class FE_DE():
     def __init__(self):
-        self.rs1_value = None
-        self.rs2_value = None
-        self.imm_value = None
-        self.pc = None
+        self.rs1_reg = create_new_register()
+        self.rs2_reg = create_new_register()
+        self.rd_reg = create_new_register()
+        self.imm_reg = create_new_register()
+        self.pc = create_new_register()
+        self.decode_instr = create_new_register()
 
 class DE_EX():
     def __init__(self):
-        self.rs1_value = None
-        self.rs2_value = None
-        self.imm_value = None
-        self.pc = None
+        self.rs1_reg = create_new_register()
+        self.rs2_reg = create_new_register()
+        self.imm_reg = create_new_register()
+        self.rd_reg = create_new_register()
+        self.pc = create_new_register()
+        self.execute_instr = create_new_register()
 
 class EX_MEM():
     def __init__(self):
-        self.rs2_value = None
-        self.addr = None
-        pass
+        self.rs2_reg = create_new_register()
+        self.rd_reg = create_new_register()
+        self.addr_reg = create_new_register()
+        self.memory_instr = create_new_register()
 
 class MEM_WB():
     def __init__(self):
-        pass
+        self.rd_reg = create_new_register()
+        self.writeback_instr = create_new_register()
 
 class DECODE():
     def __init__(self):
@@ -34,40 +60,34 @@ class DECODE():
         from shifter import ShifterModule
         self.RF = RegisterFileClass()
         self.Shifter = ShifterModule()
-        self.DECODE_INSTR = NOP_Class()
         self.DECODE_EN = 1
-        self.DECODE_SIGNALS_INPUT = FE_DE()
-        self.DECODE_SIGNALS = DE_EX()
 
 class EXECUTE():
     def __init__(self):
         from adder import Adder
         self.Adder = Adder()
-        self.EXECUTE_INSTR = NOP_Class()
         self.EXECUTE_EN = 1
-        self.EXECUTE_SIGNALS_INPUT = DE_EX()
 
 class MEMORY():
     def __init__(self):
         from memory import Memory
         self.Memory = Memory(ADDR_WIDTH=6, DATA_WIDTH=32, DELAY=0)
-        self.MEMORY_INSTR = NOP_Class()
         self.MEMORY_EN = 1
-        self.MEMORY_SIGNALS_INPUT = EX_MEM()
 
 class WRITEBACK():
     def __init__(self):
-        self.WRITEBACK_INSTR = NOP_Class()
         self.WRITEBACK_EN = 1
-        self.WRITEBACK_SIGNALS_INPUT = MEM_WB()
 
 class PipelineClass():
-
     def __init__(self):
-        
         self.FETCH_INSTR = NOP_Class()
         self.FETCH_EN = 1
         self.PC = 0
+
+        self.FE_DE = FE_DE()
+        self.DE_EX = DE_EX()
+        self.EX_MEM = EX_MEM()
+        self.MEM_WB = MEM_WB()
 
         self.DECODE = DECODE()
         self.EXECUTE = EXECUTE()
@@ -75,25 +95,48 @@ class PipelineClass():
         self.WRITEBACK = WRITEBACK()
     
     def update_stages_enable_signal_before_clock_pulse(self):
-        rs1_addr = self.DECODE.DECODE_SIGNALS_INPUT.rs1_value
-        rs2_addr = self.DECODE.DECODE_SIGNALS_INPUT.rs2_value
-        imm_value = self.DECODE.DECODE_SIGNALS_INPUT.imm_value
-        decode_return = self.DECODE.DECODE_INSTR.decode_stage(rs1=rs1_addr, rs2=rs2_addr, imm=imm_value, RF=self.DECODE.RF, shifter=self.DECODE.Shifter)
-        self.DECODE_SIGNALS = decode_return
-        
-        rs1_value = self.EXECUTE.EXECUTE_SIGNALS_INPUT.rs1_value
-        imm = self.EXECUTE.EXECUTE_SIGNALS_INPUT.imm_value
-        pc = self.EXECUTE.EXECUTE_SIGNALS_INPUT.pc
-        adder = self.EXECUTE.Adder
-        execute_return = self.EXECUTE.EXECUTE_INSTR.execute_stage(rs1=rs1_value, imm=imm, adder=adder, pc=pc, imm_shifted=imm)
-        self.EXECUTE_SIGNALS = execute_return
+        from hex_to_assembly import instruction_decoder
+        rs1_addr = self.FE_DE.rs1_reg.get_value()
+        rs2_addr = self.FE_DE.rs2_reg.get_value()
+        imm_value = self.FE_DE.imm_reg.get_value()
+        print("DE: ", end="")
+        instruction_return = instruction_decoder(self.FE_DE.decode_instr.get_value()) 
+        instr_class = instruction_return["instr_class"]
+        decode_instr = instr_class()
+        decode_instr.decode_stage(rs1=rs1_addr, rs2=rs2_addr, imm=imm_value, RF=self.DECODE.RF, shifter=self.DECODE.Shifter, DE_EX=self.DE_EX)
 
-        rs2_value = self.MEMORY.MEMORY_SIGNALS_INPUT.rs2_value
-        addr = self.MEMORY.MEMORY_SIGNALS_INPUT.addr
-        memory = self.MEMORY.Memory
-        self.MEMORY.MEMORY_INSTR.memory_stage(addr=addr, rs2=rs2_value, memory=memory)
+        self.DE_EX.pc.update_new_value(self.FE_DE.pc.get_value())
+        self.DE_EX.execute_instr.update_new_value(self.FE_DE.decode_instr.get_value())
         
-        self.WRITEBACK.WRITEBACK_INSTR.writeback_stage()
+        rs1_value = self.DE_EX.rs1_reg.get_value()
+        imm = self.DE_EX.imm_reg.get_value()
+        pc = self.DE_EX.pc.get_value()
+        adder = self.EXECUTE.Adder
+        print("EX: ", end="")
+        instruction_return = instruction_decoder(self.DE_EX.execute_instr.get_value()) 
+        instr_class = instruction_return["instr_class"]
+        execute_instr = instr_class()
+        execute_instr.execute_stage(rs1=rs1_value, imm=imm, adder=adder, pc=pc, imm_shifted=imm, EX_MEM=self.EX_MEM)
+
+        self.EX_MEM.memory_instr.update_new_value(self.DE_EX.execute_instr.get_value())
+
+        rs2_value = self.EX_MEM.rs2_reg.get_value()
+        addr = self.EX_MEM.addr_reg.get_value()
+        memory = self.MEMORY.Memory
+        print("MEM: ", end="")
+        instruction_return = instruction_decoder(self.EX_MEM.memory_instr.get_value()) 
+        instr_class = instruction_return["instr_class"]
+        memory_instr = instr_class()
+        memory_instr.memory_stage(addr=addr, rs2=rs2_value, memory=memory, MEM_WB=self.MEM_WB)
+
+        self.MEM_WB.writeback_instr.update_new_value(self.EX_MEM.memory_instr.get_value())
+        
+        print("WB: ", end="")
+        instruction_return = instruction_decoder(self.MEM_WB.writeback_instr.get_value()) 
+        instr_class = instruction_return["instr_class"]
+        writeback_instr = instr_class()
+        writeback_instr.writeback_stage()
+        print("")
 
     def clockPulse(self, FETCH_INSTR):
         """_summary_
@@ -104,64 +147,23 @@ class PipelineClass():
         self.update_stages_enable_signal_before_clock_pulse()
         
         # The instruction in the fetch stage can read the instruction from the memory
-        if self.FETCH_EN:
-            # MUST CONVERT FETCH_INST INTO A INSTRUCTION CLASS
-            from hex_to_assembly import instruction_decoder
-            instruction_return = instruction_decoder(FETCH_INSTR) 
-            instr_class = instruction_return["instr_class"]
-            self.FETCH_INSTR = instr_class()
-            
-            # UPDATE REGISTER PIPE
-            rs1_addr = instruction_return["rs1_addr"]
-            rs2_addr = instruction_return["rs2_addr"]
-            imm_value = instruction_return["imm_value"]
-            self.DECODE.DECODE_SIGNALS_INPUT.rs1_value = rs1_addr
-            self.DECODE.DECODE_SIGNALS_INPUT.rs2_value = rs2_addr
-            self.DECODE.DECODE_SIGNALS_INPUT.imm_value = imm_value
-            self.DECODE.DECODE_SIGNALS_INPUT.pc = self.PC
+        from hex_to_assembly import instruction_decoder
+        print("FE ", end="")
+        instruction_return = instruction_decoder(FETCH_INSTR) 
+        imm_value = instruction_return["imm_value"]
+        self.FE_DE.imm_reg.update_new_value(imm_value)
+        self.FE_DE.decode_instr.update_new_value(FETCH_INSTR)
 
-        else:
-            self.FETCH_INSTR = NOP_Class()
+        for register in register_list:
+            register.clockPulse()
         
         # Update PC
         self.PC = self.PC + 4
         
-        # The instruction in the decode can take the value from the register file
-        if self.DECODE.DECODE_EN:
-            self.DECODE.DECODE_INSTR = self.FETCH_INSTR
-            
-            # UPDATE REGISTER PIPE
-            self.EXECUTE.EXECUTE_SIGNALS_INPUT.rs1_value = self.DECODE.DECODE_SIGNALS.rs1_value
-            self.EXECUTE.EXECUTE_SIGNALS_INPUT.rs2_value = self.DECODE.DECODE_SIGNALS.rs2_value
-            self.EXECUTE.EXECUTE_SIGNALS_INPUT.imm_value = self.DECODE.DECODE_SIGNALS.imm_value
-            self.EXECUTE.EXECUTE_SIGNALS_INPUT.pc = self.DECODE.DECODE_SIGNALS.pc
-        else:
-            self.DECODE.DECODE_INSTR = NOP_Class()
-        
-        # The instruction in the execute can compute the value
-        if self.EXECUTE.EXECUTE_EN:
-            self.EXECUTE.EXECUTE_INSTR = self.DECODE.DECODE_INSTR
-        else:
-            self.EXECUTE.EXECUTE_INSTR = NOP_Class()
-        
-        # The instruction in the memory can write/read from the memory
-        if self.MEMORY.MEMORY_EN:
-            self.MEMORY.MEMORY_INSTR = self.EXECUTE.EXECUTE_INSTR
-        else:
-            self.MEMORY.MEMORY_INSTR = NOP_Class()
-        
-        # The instruction in the writeback is allowed to write in the register file
-        if self.WRITEBACK.WRITEBACK_EN:
-            self.WRITEBACK.WRITEBACK_INSTR = self.MEMORY.MEMORY_INSTR
-        else:
-            self.WRITEBACK.WRITEBACK_INSTR = NOP_Class()
-
-PC = 0
-
 if __name__ == "__main__":
     Pipeline = PipelineClass()
 
     Pipeline.clockPulse(0x1fc18197) ## AUIPC R3, #130072
-    for i in range(0, 100, 1):
+    for i in range(0, 5, 1):
         Pipeline.clockPulse(0x00000000) ## NOP
 

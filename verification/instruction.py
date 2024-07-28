@@ -8,23 +8,14 @@ class Instruction():
         self.opcode =  get_opcode_from_pseudo(self.pseudo)
         self.I_Type =  get_I_type_from_pseudo(self.pseudo)
     
-    def decode_stage(self, rs1: int, rs2: int, imm: int, RF: RegisterFileClass, shifter: ShifterModule):
-        from simulator import DE_EX
-        self.DE_EX = DE_EX()
-        self._decode_stage(rs1=rs1, rs2=rs2, imm=imm, RF=RF, shifter=shifter)
-        return self.DE_EX
+    def decode_stage(self, rs1: int, rs2: int, imm: int, RF: RegisterFileClass, shifter: ShifterModule, DE_EX):
+        self._decode_stage(rs1=rs1, rs2=rs2, imm=imm, RF=RF, shifter=shifter, DE_EX=DE_EX)
     
-    def execute_stage(self, rs1: int, imm: int, adder: Adder, pc: int, imm_shifted: int):
-        from simulator import EX_MEM
-        self.EX_MEM = EX_MEM()
-        self._execute_stage(rs1=rs1, imm=imm, adder=adder, pc=pc, imm_shifted=imm_shifted)
-        return self.EX_MEM
+    def execute_stage(self, rs1: int, imm: int, adder: Adder, pc: int, imm_shifted: int, EX_MEM):
+        self._execute_stage(rs1=rs1, imm=imm, adder=adder, pc=pc, imm_shifted=imm_shifted, EX_MEM=EX_MEM)
     
-    def memory_stage(self, addr: int, rs2: int, memory: DataMemory):
-        from simulator import MEM_WB
-        self.MEM_WB = MEM_WB()
-        self._memory_stage(addr=addr, rs2=rs2, memory=memory)
-        return self.MEM_WB
+    def memory_stage(self, addr: int, rs2: int, memory: DataMemory, MEM_WB):
+        self._memory_stage(addr=addr, rs2=rs2, memory=memory, MEM_WB=MEM_WB)
     
     def writeback_stage(self) -> None:
         pass
@@ -141,7 +132,7 @@ class AUIPC_Class(Instruction):
         value = pc + imm_shifted
         RF.write_value_into_register(rd, value)
     
-    def _decode_stage(self, shifter: ShifterModule, **kwargs) -> int:
+    def _decode_stage(self, imm: int, shifter: ShifterModule, DE_EX = None, **kwargs) -> int:
         """Call this function to know what the function does in the decode stage
         Args:
             imm (int): The immediate value
@@ -149,12 +140,13 @@ class AUIPC_Class(Instruction):
         Returns:
             int: The immediate shifted left by 12 positions
         """
-        imm = kwargs["imm"]
+        assert not imm is None
+        assert not DE_EX is None 
         imm_value = shifter.shift12(imm)
         
-        self.DE_EX.imm_value = imm_value 
+        DE_EX.imm_reg.update_new_value(imm_value) 
     
-    def _execute_stage(self, pc: int, imm_shifted: int, adder: Adder, **kwargs) -> int:
+    def _execute_stage(self, pc: int, imm_shifted: int, adder: Adder, EX_MEM = None, **kwargs) -> int:
         """Call this function to know what the function does in the decode stage
 
         Args:
@@ -167,11 +159,12 @@ class AUIPC_Class(Instruction):
         """
         assert type(pc) == int
         assert type(imm_shifted) == int
+        assert not EX_MEM is None
         
         value = adder.sum(pc, imm_shifted)
-        return value
-    
-    def _memory_stage(self) -> None:
+        EX_MEM.addr_reg.update_new_value(value)   
+
+    def _memory_stage(self, **kwargs) -> None:
         """Call this function to know what the function does in the writeback stage
         """
         return None
