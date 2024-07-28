@@ -14,10 +14,10 @@ class Instruction():
         self._decode_stage(rs1=rs1, rs2=rs2, imm=imm, RF=RF, shifter=shifter)
         return self.DE_EX
     
-    def execute_stage(self, rs1: int, imm: int, adder: Adder):
+    def execute_stage(self, rs1: int, imm: int, adder: Adder, pc: int, imm_shifted: int):
         from simulator import EX_MEM
         self.EX_MEM = EX_MEM()
-        self._execute_stage(rs1=rs1, imm=imm, adder=adder)
+        self._execute_stage(rs1=rs1, imm=imm, adder=adder, pc=pc, imm_shifted=imm_shifted)
         return self.EX_MEM
     
     def memory_stage(self, addr: int, rs2: int, memory: DataMemory):
@@ -126,7 +126,7 @@ class AUIPC_Class(Instruction):
     pseudo = "AUIPC"
     def __init__(self):
         self.description =  "AUIPC: Loads **imm << 12** + **PC** in **RD**."
-        self.func =  self._LUI
+        self.func =  self._AUIPC
         self.arg1 =  "imm"
         self.arg2 =  "rd"
         self.arg3 =  "RF"
@@ -141,7 +141,7 @@ class AUIPC_Class(Instruction):
         value = pc + imm_shifted
         RF.write_value_into_register(rd, value)
     
-    def _decode_stage(self, **kwargs) -> int:
+    def _decode_stage(self, shifter: ShifterModule, **kwargs) -> int:
         """Call this function to know what the function does in the decode stage
         Args:
             imm (int): The immediate value
@@ -149,14 +149,12 @@ class AUIPC_Class(Instruction):
         Returns:
             int: The immediate shifted left by 12 positions
         """
-        assert "shifter" in kwargs.keys()
-        shifter: ShifterModule = kwargs["shifter"]
         imm = kwargs["imm"]
         imm_value = shifter.shift12(imm)
         
         self.DE_EX.imm_value = imm_value 
     
-    def _execute_stage(self, pc: int, imm_shifted: int, adder: Adder) -> int:
+    def _execute_stage(self, pc: int, imm_shifted: int, adder: Adder, **kwargs) -> int:
         """Call this function to know what the function does in the decode stage
 
         Args:

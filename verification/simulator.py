@@ -9,13 +9,14 @@ class FE_DE():
         self.rs1_value = None
         self.rs2_value = None
         self.imm_value = None
-
+        self.pc = None
 
 class DE_EX():
     def __init__(self):
         self.rs1_value = None
         self.rs2_value = None
         self.imm_value = None
+        self.pc = None
 
 class EX_MEM():
     def __init__(self):
@@ -36,6 +37,7 @@ class DECODE():
         self.DECODE_INSTR = NOP_Class()
         self.DECODE_EN = 1
         self.DECODE_SIGNALS_INPUT = FE_DE()
+        self.DECODE_SIGNALS = DE_EX()
 
 class EXECUTE():
     def __init__(self):
@@ -65,6 +67,7 @@ class PipelineClass():
         
         self.FETCH_INSTR = NOP_Class()
         self.FETCH_EN = 1
+        self.PC = 0
 
         self.DECODE = DECODE()
         self.EXECUTE = EXECUTE()
@@ -80,8 +83,9 @@ class PipelineClass():
         
         rs1_value = self.EXECUTE.EXECUTE_SIGNALS_INPUT.rs1_value
         imm = self.EXECUTE.EXECUTE_SIGNALS_INPUT.imm_value
+        pc = self.EXECUTE.EXECUTE_SIGNALS_INPUT.pc
         adder = self.EXECUTE.Adder
-        execute_return = self.EXECUTE.EXECUTE_INSTR.execute_stage(rs1=rs1_value, imm=imm, adder=adder)
+        execute_return = self.EXECUTE.EXECUTE_INSTR.execute_stage(rs1=rs1_value, imm=imm, adder=adder, pc=pc, imm_shifted=imm)
         self.EXECUTE_SIGNALS = execute_return
 
         rs2_value = self.MEMORY.MEMORY_SIGNALS_INPUT.rs2_value
@@ -99,38 +103,58 @@ class PipelineClass():
         """
         self.update_stages_enable_signal_before_clock_pulse()
         
-        # The instruction in the writeback is allowed to write in the register file
-        if self.WRITEBACK.WRITEBACK_EN:
-            self.WRITEBACK.WRITEBACK_INSTR = self.MEMORY.MEMORY_INSTR
+        # The instruction in the fetch stage can read the instruction from the memory
+        if self.FETCH_EN:
+            # MUST CONVERT FETCH_INST INTO A INSTRUCTION CLASS
+            from hex_to_assembly import instruction_decoder
+            instruction_return = instruction_decoder(FETCH_INSTR) 
+            instr_class = instruction_return["instr_class"]
+            self.FETCH_INSTR = instr_class()
+            
+            # UPDATE REGISTER PIPE
+            rs1_addr = instruction_return["rs1_addr"]
+            rs2_addr = instruction_return["rs2_addr"]
+            imm_value = instruction_return["imm_value"]
+            self.DECODE.DECODE_SIGNALS_INPUT.rs1_value = rs1_addr
+            self.DECODE.DECODE_SIGNALS_INPUT.rs2_value = rs2_addr
+            self.DECODE.DECODE_SIGNALS_INPUT.imm_value = imm_value
+            self.DECODE.DECODE_SIGNALS_INPUT.pc = self.PC
+
         else:
-            self.WRITEBACK.WRITEBACK_INSTR = NOP_Class()
+            self.FETCH_INSTR = NOP_Class()
+        
+        # Update PC
+        self.PC = self.PC + 4
+        
+        # The instruction in the decode can take the value from the register file
+        if self.DECODE.DECODE_EN:
+            self.DECODE.DECODE_INSTR = self.FETCH_INSTR
+            
+            # UPDATE REGISTER PIPE
+            self.EXECUTE.EXECUTE_SIGNALS_INPUT.rs1_value = self.DECODE.DECODE_SIGNALS.rs1_value
+            self.EXECUTE.EXECUTE_SIGNALS_INPUT.rs2_value = self.DECODE.DECODE_SIGNALS.rs2_value
+            self.EXECUTE.EXECUTE_SIGNALS_INPUT.imm_value = self.DECODE.DECODE_SIGNALS.imm_value
+            self.EXECUTE.EXECUTE_SIGNALS_INPUT.pc = self.DECODE.DECODE_SIGNALS.pc
+        else:
+            self.DECODE.DECODE_INSTR = NOP_Class()
+        
+        # The instruction in the execute can compute the value
+        if self.EXECUTE.EXECUTE_EN:
+            self.EXECUTE.EXECUTE_INSTR = self.DECODE.DECODE_INSTR
+        else:
+            self.EXECUTE.EXECUTE_INSTR = NOP_Class()
         
         # The instruction in the memory can write/read from the memory
         if self.MEMORY.MEMORY_EN:
             self.MEMORY.MEMORY_INSTR = self.EXECUTE.EXECUTE_INSTR
         else:
             self.MEMORY.MEMORY_INSTR = NOP_Class()
-
-        # The instruction in the execute can compute the value
-        if self.EXECUTE.EXECUTE_EN:
-            self.EXECUTE.EXECUTE_INSTR = self.DECODE.DECODE_INSTR
+        
+        # The instruction in the writeback is allowed to write in the register file
+        if self.WRITEBACK.WRITEBACK_EN:
+            self.WRITEBACK.WRITEBACK_INSTR = self.MEMORY.MEMORY_INSTR
         else:
-            self.EXECUTE.EXECUTE_INSTR = NOP_Class()
-
-        # The instruction in the decode can take the value from the register file
-        if self.DECODE.DECODE_EN:
-            self.DECODE.DECODE_INSTR = self.FETCH_INSTR
-        else:
-            self.DECODE.DECODE_INSTR = NOP_Class()
-
-        # The instruction in the fetch stage can read the instruction from the memory
-        if self.FETCH_EN:
-            # MUST CONVERT FETCH_INST INTO A INSTRUCTION CLASS
-            from hex_to_assembly import instruction_decoder
-            # instr_class = instruction_decoder(FETCH_INSTR) 
-            self.FETCH_INSTR = instr_class
-        else:
-            self.FETCH_INSTR = NOP_Class()
+            self.WRITEBACK.WRITEBACK_INSTR = NOP_Class()
 
 PC = 0
 

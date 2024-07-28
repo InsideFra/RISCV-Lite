@@ -29,6 +29,12 @@ def instruction_decoder(instr: int):
     instr_type = None
     pseudo = None
     instr_class = None
+    return_buffer = {
+        "instr_class": None,
+        "rs1_addr": rs1,
+        "rs2_addr": rs2,
+        "imm_value": None
+    }
     for i_type, item1 in instruction_list.items():
         for i_pseudo, item2 in item1.items():
             if item2["opcode"] == opcode:
@@ -55,10 +61,10 @@ def instruction_decoder(instr: int):
     
     assert instr_type != None
     assert pseudo != None 
-    
+    return_buffer["instr_class"] = instr_class
     instr_type = instr_type[0]
     if instr_type == "R":
-        print(f"({line.strip()}) - ", end="")
+        # print(f"({line.strip()}) - ", end="")
         print(f"{pseudo:5} R{rd:<2}, R{rs1}, R{rs2}")
     elif instr_type == "I":
         imm_mask = 0xFFF00000
@@ -66,7 +72,8 @@ def instruction_decoder(instr: int):
         # Check if the number is in the negative range for a 12-bit signed integer
         if imm & (1 << 11):  # Check the sign bit
             imm = imm - (1 << 12)  # Convert from unsigned to signed
-        print(f"({line.strip()}) - ", end="")
+        # print(f"({line.strip()}) - ", end="")
+        return_buffer["imm_value"] = imm
         print(f"{pseudo:5} R{rd:<2}, R{rs1}, #{imm}")
     elif instr_type == "S":
         imm_mask = 0xFE000000
@@ -75,14 +82,16 @@ def instruction_decoder(instr: int):
         imm += ((instr & imm_mask) >> 7)
         if imm & (1 << 12):  # Check the sign bit
             imm = imm - (1 << 12)  # Convert from unsigned to signed
-        print(f"({line.strip()}) - ", end="")
+        # print(f"({line.strip()}) - ", end="")
+        return_buffer["imm_value"] = imm
         print(f"{pseudo:5} R{rs2:<2}, {imm}(R{rs1})")
     elif instr_type == "U":
         imm_mask = 0xFFFFF000
         imm = (instr & imm_mask) >> 12
         if imm & (1 << 19):  # Check the sign bit
             imm = imm - (1 << 20)  # Convert from unsigned to signed
-        print(f"({line.strip()}) - ", end="")
+        # print(f"({line.strip()}) - ", end="")
+        return_buffer["imm_value"] = imm
         print(f"{pseudo:5} R{rd:<2}, #{imm}")
     elif instr_type == "J":
         # Extract the bits
@@ -95,7 +104,8 @@ def instruction_decoder(instr: int):
         # Rearrange the bits into the new number
         imm = (bit_20 << 20) | (bits_10_to_1 << 1) | (bit_11 << 11) | (bits_19_to_12 << 12)
     
-        print(f"({line.strip()}) - ", end="")
+        # print(f"({line.strip()}) - ", end="")
+        return_buffer["imm_value"] = imm
         print(f"{pseudo:5} R{rd:<2}, #{imm}")
     elif instr_type == "B":
         # Bit 31 = bit 11
@@ -113,14 +123,15 @@ def instruction_decoder(instr: int):
         # Rearrange the bits into the new number
         imm = (bit_31 << 11) | (bit_7 << 10) | (bit_30_to_25 << 4) | (bit_11_to_8)
     
-        print(f"({line.strip()}) - ", end="")
+        # print(f"({line.strip()}) - ", end="")
+        return_buffer["imm_value"] = imm
         print(f"{pseudo:5} R{rd:<2}, #{imm}")
     elif instr_type == "N":
-        return
+        print(f"{pseudo:5}")
     else:
         raise NotImplementedError()
 
-    return instr_class
+    return return_buffer
 
 if __name__ == "__main__":
     with open('sim/main_hex.txt', 'r') as file:
