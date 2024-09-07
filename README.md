@@ -58,43 +58,43 @@
  - [x] **RET**: Is an alias of **JALR** and performs a jump in the register **RA** (at the address 1). 
 
  ### ADDITIONAL
- - [] **CSRRW**:
- - [] **CSRRS**:
- - [] **CSRRC**:
- - [] **CSRRWI**:
- - [] **CSRRSI**:
- - [] **CSRRCI**:
+ - [ ] **CSRRW**:
+ - [ ] **CSRRS**:
+ - [ ] **CSRRC**:
+ - [ ] **CSRRWI**:
+ - [ ] **CSRRSI**:
+ - [ ] **CSRRCI**:
 
- - [] **RDCYCLE**:
- - [] **RDTIME**:
- - [] **RDINSTRET**:
+ - [ ] **RDCYCLE**:
+ - [ ] **RDTIME**:
+ - [ ] **RDINSTRET**:
 
- - [] **ECALL**:
- - [] **EBREAK**:
+ - [ ] **ECALL**:
+ - [ ] **EBREAK**:
  
  # RISCV32M Instructions:
- - [] **MUL**:
- - [] **MULH**:
- - [] **MULHSU**:
- - [] **MULHU**:
- - [] **DIV**:
- - [] **DIVU**:
- - [] **REM**:
- - [] **REMU**:
+ - [ ] **MUL**:
+ - [ ] **MULH**:
+ - [ ] **MULHSU**:
+ - [ ] **MULHU**:
+ - [ ] **DIV**:
+ - [ ] **DIVU**:
+ - [ ] **REM**:
+ - [ ] **REMU**:
  
  # RISCV32A Instructions:
-- [] **lr.w**: Load a word from the address in rs1, places the sign-extended value in rd, and registers a reservation on the memory address. 
-- [] **sc.w**: 
-- [] **amoswap.w**:
-- [] **amoadd.w**: Atomically load a 32-bit signed data value from the address in **RS1**, place the value into register **RD**, apply add the loaded value and the original 32-bit signed value in **RS2**, then store the result back to the address in **RS1**.
-- [] **amoadd.w**: 
-- [] **amoxor.w**: 
-- [] **amoand.w**: 
-- [] **amoor.w**: 
-- [] **amomin.w**: 
-- [] **amomax.w**: 
-- [] **amominu.w**: 
-- [] **amoaxu.w**: 
+ - [ ] **lr.w**: Load a word from the address in rs1, places the sign-extended value in rd, and registers a reservation on the memory address. 
+ - [ ] **sc.w**: 
+ - [ ] **amoswap.w**:
+ - [ ] **amoadd.w**: Atomically load a 32-bit signed data value from the address in **RS1**, place the value into register **RD**, apply add the loaded value and the original 32-bit signed value in **RS2**, then store the result back to the address in **RS1**.
+ - [ ] **amoadd.w**: 
+ - [ ] **amoxor.w**: 
+ - [ ] **amoand.w**: 
+ - [ ] **amoor.w**: 
+ - [ ] **amomin.w**: 
+ - [ ] **amomax.w**: 
+ - [ ] **amominu.w**: 
+ - [ ] **amoaxu.w**: 
  
 
  
