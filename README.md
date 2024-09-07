@@ -5,7 +5,14 @@
  
  ## Description
  
- The architecture contains an SSRAM for both data and instruction. To get higher performance, we added an INSTRUCTION CACHE, a Branch Prediction Unit and a Forwarding Unit. To handle Branch and Jump instructions, we used an Hazard Control Unit.
+ The architecture contains an SSRAM for both data and instruction. 
+ 
+ To get higher performance, we added: 
+ - an INSTRUCTION CACHE.
+ - a Branch Prediction Unit. 
+ - a Forwarding Unit. 
+ 
+ To handle Branch and Jump instructions, we used an **Hazard Control Unit**.
  
  This architecture has been developed to execute a very specific assembly code, with the following instruction being implemented: 
  
@@ -99,3 +106,42 @@
 
  
  The architecture is mainly written as Behavioral, with few pieces written in a structural form.
+
+ # Architecture description
+
+ The architecture is composed of a 5 stage pipeline:
+ - FETCH
+   - Cache Branch
+   - Branch Fetch
+   - PC (Program Counter)
+   - I_FSM0 (Instruction Finite State Machine)
+   - SRAM freepdk45
+   - ICACHE
+   - add_unit1
+ - DECODE
+    - register_file
+    - control (control unit)
+    - imm_gen (immediate generator)
+ - EXECUTE
+    - add_unit (Used to compute the PC jump address)
+    - ALUControl
+    - ALU
+ - MEMORY
+ - WRITEBACK
+
+ The architecture is provided with **32 registers** that can be accessed by the CPU.
+ The registers goes from 0 to 31, the address length is 5 bits.
+
+
+ # How to run the simulation
+
+ ```
+ cd sim
+ vsim -do run_sim.tcl
+ ```
+
+ This simulation will execute the DP_TB module inside the tb/testbench.sv.
+
+ In the first phase, the instruction memory will be loaded. Then, the data memory will be loaded. Then, the CPU is started.
+ 
+ At the end, the OK signal is checked. If it is equal to 1, everything went well.
