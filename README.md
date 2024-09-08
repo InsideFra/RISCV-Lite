@@ -37,6 +37,10 @@
  - [x] **SRAI**: Performs an arithmetic right shift on **RS1** equal to the value stored in the lower 5 bits of **IMM**.
  - [x] **SLLI**: Performs an arithmetic left shift on **RS1** equal to the value stored in the lower 5 bits of **IMM**.
  - [x] **LW**: Loads in the register **RD** from the memory at the address **RS1** + **IMM**.
+ - [ ] **LB**: Loads a 8-bit value from the memory at the address **RS1** + **IMM** and sign-extends this to 32bits before storing in into the register **RD**.
+ - [ ] **LBU**: Loads a 8-bit value from the memory at the address **RS1** + **IMM** and zero-extends this to 32bits before storing in into the register **RD**.
+ - [ ] **LH**: Loads a 16-bit value from the memory at the address **RS1** + **IMM** and sign-extends this to 32bits before storing in into the register **RD**.
+ - [ ] **LHU**: Loads a 16-bit value from the memory at the address **RS1** + **IMM** and zero-extends this to 32bits before storing in into the register **RD**.
  - [ ] **ANDI**: Performs a bitwise AND between **RS1** and **IMM** and stores the result in **RD**.
  - [ ] **ORI**: Performs a bitwise OR between **RS1** and **IMM** and stores the result in **RD**.
  - [ ] **SLTI**: Sets **RD** to 1 if **RS1** is less than **IMM**, otherwise sets **RD** to 0.
@@ -45,6 +49,8 @@
  
  ### S-Type Instructions
  - [x] **SW**: Loads in the memory the value in **RS2** at the address **RS1** + **IMM**.
+ - [ ] **SB**: Loads in the memory the low 8 bits value in **RS2** at the address **RS1** + **IMM**.
+ - [ ] **SH**: Loads in the memory the low 16 bits value in **RS2** at the address **RS1** + **IMM**.
  
  ### U-Type Instructions
  - [x] **AUIPC**: Loads in the register **RD** the value **IMM** shifted by 12 added to the value stored in the **PC**.
@@ -78,6 +84,18 @@
 
  - [ ] **ECALL**:
  - [ ] **EBREAK**:
+
+ # RISCV HARTS related
+
+ - [ ] **FENCE**: Used to order device I/O and memory accesses as viewed by other RISC-V harts and external devices or coprocessors.
+ - [ ] **FENCE.I**: Provides explicit synchronization between writes to instruction memory and instruction fetches on the same hart.
+ - [ ] **WFI**: Provides a hint to the implementation that the current hart can be stalled until an interrupt might need servicing.
+ - [ ] **SFENCE.VMA**: Guarantees that any previous stores already visible to the current RISC-V hart are ordered before all subsequent implicit references from that hart to the memory-management data structures.
+ 
+ # RISCV TRAPS related 
+ - [ ] **URET**: Return from traps in U-mode, and URET copies UPIE into UIE, then sets UPIE.
+ - [ ] **SRET**: Return from traps in S-mode, and SRET copies SPIE into SIE, then sets SPIE.
+ - [ ] **MRET**: Return from traps in M-mode, and MRET copies MPIE into MIE, then sets MPIE.
  
  # RISCV32M Instructions:
  - [ ] **MUL**:
