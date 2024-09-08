@@ -19,7 +19,7 @@ always @ (opcode) begin
 	EX.ALUsrc   = 2'b00;
 	EX.ALUop    = DOADD; 
 
-	case(opcode)
+	case(opcode) // opcode is Bit [6:0]
 		7'b0110111:begin WB.RegWrite=1'b1; EX.ALUsrc=2'b10; end 	
 		7'b0010111:begin WB.RegWrite=1'b1; EX.ALUsrc=2'b11; end	
 		7'b0100011:begin EX.ALUsrc=2'b10; M.CS=1'b0; end	

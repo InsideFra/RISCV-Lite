@@ -1,11 +1,41 @@
 package my_pkg;
 
 typedef enum bit [1:0] 	{DOADD,TAKE4BIT,TAKE3BIT,BRANCH} ALUOP_Enum;
-typedef enum bit [3:0] 	{ADD = 4'b0000, XOR=4'b0100,SUB=4'b1000,SLL=4'b0001, SRA=4'b0101, BNE=4'b1001, BLE=4'b1101} ALUControl_Enum;
+
+typedef enum bit [3:0] 	{ // Bit [30] + [14:12]
+	ADD=4'b0000, 
+	SLL=4'b0001, 
+	XOR=4'b0100,
+	SRA=4'b0101, 
+	AND=4'b0111,
+	SUB=4'b1000,
+	BNE=4'b1001, 
+	BLE=4'b1101
+} ALUControl_Enum;
+
 typedef enum bit [2:0] 	{NOFWA=3'b001, FWA_MEMD=3'b010, FWA_ALURSLT=3'b100} ForwardA_Control_Enum;
 typedef enum bit [2:0] 	{NOFWB=3'b001, FWB_MEMD=3'b010, FWB_ALURSLT=3'b100} ForwardB_Control_Enum;
-typedef enum reg [31:0] {LUIOP, AUIPCOP, SWOP, ADDOP, XOROP, SUBOP, SLLIOP, SRAIOP, ADDIOP, LWOP, JALROP, JALOP, BNEOP, BLEOP, NOPOP} 
-		Instruction_Enum;
+
+// currently not used
+// typedef enum reg [31:0] {
+// 	LUIOP, 
+// 	AUIPCOP, 
+// 	SWOP, 
+// 	ADDOP, 
+// 	XOROP,
+// 	ANDOP, 
+// 	SUBOP, 
+// 	SLLIOP, 
+// 	SRAIOP, 
+// 	ADDIOP, 
+// 	LWOP, 
+// 	JALROP, 
+// 	JALOP, 
+// 	BNEOP, 
+// 	BLEOP, 
+// 	NOPOP
+// }	Instruction_Enum;
+
 typedef enum reg   [3:0] 	{STARTUP, STARTUP0,STARTUP1,STARTUP2,STARTUP3,STARTUP4,IDLE, MEMREAD,RESTART} FSM_MEM_states_reg;
 
 typedef enum bit [1:0]	{NOP = 2'b01, IMEM = 2'b10} FSM_Control_Enum;

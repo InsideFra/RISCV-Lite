@@ -15,7 +15,7 @@
  - [x] **XOR**: Performs a XOR operation between **RS1** and **RS2** and stores the result in **RD**.
  - [x] **ADD**: Adds **RS1** and **RS2** and stores the result in **RD**.
  - [x] **SUB**: Subtracts **RS1** and **RS2** and stores the result in **RD**.
- - [ ] **AND**: Performs a bitwise AND between **RS1** and **RS2** and stores the result in **RD**.
+ - [x] **AND**: Performs a bitwise AND between **RS1** and **RS2** and stores the result in **RD**.
  - [ ] **OR**: Performs a bitwise OR between **RS1** and **RS2** and stores the result in **RD**.
  - [ ] **SLL**: Performs a logical left shift on **RS1** by the value in **RS2** and stores the result in **RD**.
  - [ ] **SRL**: Performs a logical right shift on **RS1** by the value in **RS2** and stores the result in **RD**.
@@ -99,3 +99,19 @@
 
  
  The architecture is mainly written as Behavioral, with few pieces written in a structural form.
+
+ # Utils
+
+ ## HEX to Assembly
+ ```sh
+ xxd -r -p sim/main_hex.txt sim/main_hex.bin
+ riscv32-unknown-elf-objcopy -I binary -O elf64-littleriscv sim/main_hex.bin sim/main_hex.elf
+ riscv32-unknown-elf-objdump -D sim/main_hex.elf > sim/main_hex.asm
+ ```
+
+ ## Assembly to Hex
+ ```sh
+ riscv32-unknown-elf-as -o sim/main_hex.o sim/main_hex.s
+ riscv32-unknown-elf-ld -o sim/main_hex.elf sim/main_hex.o
+ riscv32unknown-elf-objcopy -O ihex sim/main_hex.elf sim/main_hex.txt
+ ```

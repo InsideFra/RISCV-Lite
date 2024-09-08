@@ -18,6 +18,9 @@ module ALU (input wire [31:0] op1,
 	wire [31:0] SUB_Result;
 	//assign SUB_Result = op1 + !op2 + 1'b1;
 	assign SUB_Result = op1 - op2;
+	
+	wire [31:0] AND_Result;
+	assign AND_Result = op1 & op2;
 
 	wire [31:0] SRAI_Result;
 	assign SRAI_Result = $signed(op1) >>> 31;
@@ -33,6 +36,10 @@ module ALU (input wire [31:0] op1,
 			end
 			XOR: begin
 		    	ALUResult = XOR_Result;	
+				BIT_Branch = 1'b0;
+			end
+			AND: begin
+		    	ALUResult = AND_Result;	
 				BIT_Branch = 1'b0;
 			end
 			SUB: begin
