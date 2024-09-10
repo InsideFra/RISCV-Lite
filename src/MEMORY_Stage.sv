@@ -11,23 +11,14 @@ module MEMORY_Block (
 
 	input M_ctrl 	MEM_in_M,
 	input wire		enable_cs,
-    input [31:0]   	MEM_in_PC_jump,
-    input          	MEM_in_bit_branch,
     input [31:0]   	MEM_in_reg_data_2,
-	input 			MEM_in_P,
-	input 			PCSrc_BP_out,
-	input [31:0] 	EX_in_PC_add,
 	
 	input 			TEST_EN,
 	input 			TEST_MEM_CSB,
 	input 			TEST_MEM_WE,
 
-	output [31:0]	MEM_mem_data,
-	output PCSrc,
-	output HAZARD_mask,
-	output HAZARD_wrong_P,
+	output [31:0] MEM_mem_data,
 	output [31:0] TB_Instr,
-	output [31:0] MEM_toPC,
  	output reg OK	
 );
 
@@ -41,18 +32,6 @@ module MEMORY_Block (
 
 //---------------------- Memory Stage VAR END-----------------------------//
 	
-	//mux
-	assign MEM_toPC = MEM_in_M.AddtoPC ? MEM_in_ALU_res : MEM_in_PC_jump;  
-	
-	//PCsrc logic
-	assign PCSrc = MEM_in_M.jump | (MEM_in_M.branch & MEM_in_bit_branch);  
-
-	//mask hazard fo correct prediction
-	assign HAZARD_mask = (MEM_toPC==EX_in_PC_add && MEM_in_P && PCSrc) ? 1'b1 : 1'b0; 
-	//when prediction is not correct and branch is not taken
-	assign HAZARD_wrong_P = (MEM_in_M.branch && MEM_in_P && (~MEM_in_bit_branch)) ? 
-						 1'b1 : 1'b0;
-
 	assign TB_Instr = WB_in_instr;
 
 	always @ (*) begin

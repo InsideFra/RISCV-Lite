@@ -10,6 +10,13 @@ typedef enum reg   [3:0] 	{STARTUP, STARTUP0,STARTUP1,STARTUP2,STARTUP3,STARTUP4
 
 typedef enum bit [1:0]	{NOP = 2'b01, IMEM = 2'b10} FSM_Control_Enum;
 
+typedef enum bit [2:0] {
+	next_pc = 3'b000,
+	nop		= 3'b010,
+	branch_alu  = 3'b011,
+	branch_pc_jump = 3'b100
+} PCSrc_Enum;
+
 typedef struct packed {
 	reg RegWrite;
 	reg PCtoReg;
@@ -41,6 +48,16 @@ typedef struct packed {
 	reg [4:0] rs2;	
 	reg [4:0] rd;
 	reg MemRead;
+	reg MEM_in_M_jump; 
+	reg MEM_in_M_branch;
+	reg MEM_in_bit_branch;
+	reg MEM_in_P;
+	reg MEM_in_M_AddtoPC;
+	reg MEM_in_ALU_res; 
+	reg MEM_in_PC_jump;  
+	reg EX_in_PC_add;
+	reg FSM_PCSrc;
+
 } HAZARD_ctrl_i;
 
 typedef struct packed {
@@ -48,6 +65,7 @@ typedef struct packed {
 	reg Ctrl_Mux_EX;
 	reg En_IFID;
 	reg En_PC;
+	PCSrc_Enum PCSrc;
 } HAZARD_ctrl_o;
 
 typedef struct packed {
