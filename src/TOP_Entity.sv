@@ -26,10 +26,7 @@ module DataPath (
 
 //---------------------- Hazard Control Unit VAR ---------------------//
 	HAZARD_ctrl_o HAZARD_o;
-	HAZARD_ctrl_o HAZARD_BP_o;	//output HAZARD after check of prediction
 	HAZARD_ctrl_i HAZARD_i;
-	reg HAZARD_mask;      	//mask output of hazard if prediction is correct
-	reg HAZARD_wrong_P;      	//mask output of hazard if prediction is correct
 //---------------------- Hazard Control Unit VAR END -----------------//
 
 //---------------------- Forward Control Unit VAR---------------------//
@@ -66,14 +63,14 @@ module DataPath (
 	wire [31:0] IF_PC_LINK;
 	wire [31:0] IF_PC_ADD;
 	wire [31:0] IF_INSTR;
-	wire		IF_FETCH_P;
+	reg		IF_FETCH_P;
+	assign IF_FETCH_P = 1'b0; 
 
-	wire PCSrc;
-	wire [31:0] MEM_in_PC_link;
-	wire [31:0]	MEM_toPC;
-	wire PCSrc_BP_out;
+	wire [31:0] MEM_in_PC_jump;
+	wire [31:0]	MEM_in_ALU_res;
 
 	wire TEST_FE_EN;
+	wire FSM_PCSrc;
 
 	FETCH_Block FE0 (
 		// input
@@ -82,25 +79,20 @@ module DataPath (
 		.EN(EN & enable_general),
 		.START(START),
 
-		.PCSrc(PCSrc),
-		.HAZARD_BP_o(HAZARD_BP_o),
-		//.HAZARD_o(HAZARD_o),
+		.HAZARD	(HAZARD_o),
 		.TB_LOAD_PROGRAM_CTRL(TB_LOAD_PROGRAM_CTRL),
 		.TB_LOAD_PROGRAM_ADDR(TB_LOAD_PROGRAM_ADDR),
 		.TB_LOAD_PROGRAM_DATA(TB_LOAD_PROGRAM_DATA),
 
-		.MEM_in_PC_link(MEM_in_PC_link),
-		.HAZARD_wrong_P(HAZARD_wrong_P),
-		.MEM_toPC(MEM_toPC),
-		.HAZARD_mask(HAZARD_mask),
+		.MEM_in_PC_jump(MEM_in_PC_jump),
+		.MEM_in_ALU_res(MEM_in_ALU_res),
 		
 		// output
 		.PC_link(IF_PC_LINK),
 		.PC_add(IF_PC_ADD),
 		.instr(IF_INSTR),
-		.FETCH_P(IF_FETCH_P),
-		.PCSrc_BP_out(PCSrc_BP_out),
-		.TEST_EN_OUT(TEST_FE_EN)
+		.TEST_EN_OUT(TEST_FE_EN),
+		.FSM_PCSrc(FSM_PCSrc)
 	);
 
 // END
@@ -121,7 +113,7 @@ module DataPath (
 	  .in_instr    (IF_INSTR),
 	  .in_P        (IF_FETCH_P),
 	  .clk         (CLK),
-	  .rstn        (HAZARD_BP_o.En_IFID & RSTn),
+	  .rstn        (HAZARD_o.En_IFID & RSTn),
 	  .en          (EN & START & enable_general & TEST_FE_EN),
 	  
 	  .out_PC_link (ID_in_PC_link),
@@ -162,7 +154,7 @@ module DataPath (
 	  .ID_in_instr    (ID_in_instr   ),
 	  .WB_in_Rd       (WB_in_Rd      ),
 	  .WB_Mux_Mux_out (WB_Mux_Mux_out),
-	  .HAZARD_BP_o 	  (HAZARD_BP_o   ),
+	  .HAZARD_BP_o 	  (HAZARD_o   ),
 	  .WB_in_WB		  (WB_in_WB      ),
 	  
 	  .ID_in_WB       (ID_in_WB      ),
@@ -240,7 +232,6 @@ module DataPath (
 	wire 		EX_bit_branch;	
 	
 	wire [31:0] MEM_in_instr;
-	wire [31:0] MEM_in_ALU_res;
 
 	EXECUTE_Block EX0(
 	  .CLK              (CLK             ),
@@ -249,7 +240,7 @@ module DataPath (
 	  .RSTn             (RSTn            ),
 	  .EX_in_EX         (EX_in_EX        ),
 	  .Forward_o        (Forward_o       ),
-	  .HAZARD_BP_o      (HAZARD_BP_o     ),
+	  .HAZARD_BP_o     	(HAZARD_o     ),
 	  .EX_in_PC_add     (EX_in_PC_add    ),
 	  .EX_in_imm        (EX_in_imm       ),
 	  .EX_in_reg_data_2 (EX_in_reg_data_2),
@@ -268,12 +259,12 @@ module DataPath (
 
 	M_ctrl 	MEM_in_M;
 	WB_ctrl MEM_in_WB;
-	wire [31:0] MEM_in_PC_jump;
 	wire 		MEM_in_bit_branch;
 	wire [31:0] MEM_in_reg_data_2;
 	wire [4:0]	MEM_in_Rd;
 	wire 		MEM_in_Rd_EQ0;
 	wire 		MEM_in_P;
+	wire [31:0] MEM_in_PC_link;
 
 	// Pipeline Register
 	EX_Mem_Reg ex_mem_reg (
@@ -288,7 +279,7 @@ module DataPath (
 		.in_Rd_EQ0      (EX_in_Rd_EQ0),
     	.in_P           (EX_in_P),
     	.clk            (CLK),
-    	.rstn           (RSTn & HAZARD_BP_o.Ctrl_Mux_EX),
+    	.rstn           (RSTn & HAZARD_o.Ctrl_Mux_EX),
 		.en 	        (EN & START & enable_general & TEST_FE_EN),
 		
 		//output
@@ -327,12 +318,7 @@ module DataPath (
 	  .MEM_in_instr      (MEM_in_instr     ),
 	  .MEM_in_M          (MEM_in_M         ),
 	  .enable_cs		 (enable_cs        ),
-	  .MEM_in_PC_jump    (MEM_in_PC_jump   ),
-	  .MEM_in_bit_branch (MEM_in_bit_branch),
 	  .MEM_in_reg_data_2 (MEM_in_reg_data_2),
-	  .MEM_in_P          (MEM_in_P         ),
-	  .PCSrc_BP_out      (PCSrc_BP_out     ),
-	  .EX_in_PC_add      (EX_in_PC_add     ),
 	
 	  .TEST_EN			 (TEST_EN		   ),
 	  .TEST_MEM_CSB		 (TEST_MEM_CSB	   ),
@@ -340,11 +326,7 @@ module DataPath (
 	  
 	  // output
 	  .MEM_mem_data      (MEM_mem_data     ),
-	  .PCSrc             (PCSrc            ),
-	  .HAZARD_mask       (HAZARD_mask      ),
-	  .HAZARD_wrong_P    (HAZARD_wrong_P   ),
 	  .TB_Instr          (TB_Instr         ),
-	  .MEM_toPC          (MEM_toPC         ),
 	  .OK				 (OK			   )
 	);
 
@@ -400,22 +382,26 @@ module DataPath (
 
 //---------------------- Hazard Unit ---------------------------------//
 	// if prediction is wrong it is necessary to change PC address
-	assign HAZARD_i.Pcsrc = PCSrc | HAZARD_wrong_P; 
-	
 	assign HAZARD_i.rs1 = ID_Rs1;
 	assign HAZARD_i.rs2 = ID_Rs2;
 	assign HAZARD_i.rd = EX_in_Rd;
 	assign HAZARD_i.MemRead = EX_in_M.MemRead;
+	assign HAZARD_i.MEM_in_M_jump = MEM_in_M.jump;
+	assign HAZARD_i.MEM_in_M_branch = MEM_in_M.branch;
+	assign HAZARD_i.MEM_in_bit_branch = MEM_in_bit_branch;
+	assign HAZARD_i.MEM_in_P = MEM_in_P;
+	assign HAZARD_i.EX_in_PC_add = EX_in_PC_add;
+	
+	assign HAZARD_i.MEM_in_M_AddtoPC = MEM_in_M.AddtoPC;
+	assign HAZARD_i.MEM_in_ALU_res = MEM_in_ALU_res;
+	assign HAZARD_i.MEM_in_PC_jump = MEM_in_PC_jump;
+	assign HAZARD_i.FSM_PCSrc = FSM_PCSrc;
 	
 	Hazard_Ctrl_Unit HZRD_0(
 	 .HAZARD_i (HAZARD_i),
 	 .HAZARD_o (HAZARD_o)
 	);
 
-	assign HAZARD_BP_o.Ctrl_Mux_DE = HAZARD_o.Ctrl_Mux_DE | HAZARD_mask;
-    assign HAZARD_BP_o.Ctrl_Mux_EX = HAZARD_o.Ctrl_Mux_EX | HAZARD_mask;
-    assign HAZARD_BP_o.En_IFID     = HAZARD_o.En_IFID     | HAZARD_mask;
-    assign HAZARD_BP_o.En_PC       = HAZARD_o.En_PC;
 //---------------------- Hazard Unit END ----------------------------//
 
 //---------------------- FSM ---------------------------------//
