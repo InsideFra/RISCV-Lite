@@ -55,8 +55,10 @@ module DP_TB ();
 		end 
 			
 		while (!$feof(instr_file)) begin
-			$fscanf(instr_file, "%h\n", instr_toload[instr_cnt]);
-			instr_cnt = instr_cnt + 1;
+			$fscanf(instr_file, "%h\n", instr_toload[instr_cnt++]);
+			instr_toload[instr_cnt++] = 16'b00000000;
+			instr_toload[instr_cnt++] = 16'b000000000;
+			instr_toload[instr_cnt++] = 16'b000000000;
 		end
 		
 		data_file = $fopen("./data_hex.txt", "r");
@@ -66,8 +68,10 @@ module DP_TB ();
 		end 
 			
 		while (!$feof(data_file)) begin
-			$fscanf(data_file, "%h\n", data_toload[data_cnt]);
-			data_cnt = data_cnt + 1;
+			$fscanf(data_file, "%h\n", data_toload[data_cnt++]);
+			data_toload[data_cnt++] = 16'b00000000;
+			data_toload[data_cnt++] = 16'b000000000;
+			data_toload[data_cnt++] = 16'b000000000;
 		end
 
 		CLK = 1'b0;

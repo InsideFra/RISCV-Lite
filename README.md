@@ -104,14 +104,16 @@
 
  ## HEX to Assembly
  ```sh
- xxd -r -p sim/main_hex.txt sim/main_hex.bin
- riscv32-unknown-elf-objcopy -I binary -O elf64-littleriscv sim/main_hex.bin sim/main_hex.elf
- riscv32-unknown-elf-objdump -D sim/main_hex.elf > sim/main_hex.asm
+ TBD
  ```
 
  ## Assembly to Hex
  ```sh
- riscv32-unknown-elf-as -o sim/main_hex.o sim/main_hex.s
- riscv32-unknown-elf-ld -o sim/main_hex.elf sim/main_hex.o
- riscv32unknown-elf-objcopy -O ihex sim/main_hex.elf sim/main_hex.txt
+ /opt/riscv/bin/riscv32-unknown-linux-gnu-as -o sim/main.o sim/main.s
+ /opt/riscv/bin/riscv32-unknown-linux-gnu-ld -o sim/main.elf sim/main.o
+ /opt/riscv/bin/riscv32-unknown-linux-gnu-objcopy -O binary sim/main.elf sim/main.bin
+ hexdump -e '"%08x\n"' sim/main.bin > sim/main.hex
+ csplit -z sim/main.hex '/\*/' '{*}'; mv xx00 sim/main_hex.txt; mv xx01 sim/data_hex.txt; 
+ /opt/riscv/bin/riscv32-unknown-linux-gnu-objdump -D --section .text sim/main.o > sim/main_text.hex
+ /opt/riscv/bin/riscv32-unknown-linux-gnu-objdump -D --section .data sim/main.o > sim/main_data.hex
  ```
