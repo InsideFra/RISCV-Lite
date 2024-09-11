@@ -2,24 +2,19 @@ import my_pkg::*;
 module FETCH_Block (
 		input 	CLK, RSTn, EN, START,
 
-		input 	PCSrc,
-		input 	HAZARD_ctrl_o HAZARD_BP_o,
-		//input	HAZARD_ctrl_o HAZARD_o,
-		input 			TB_LOAD_PROGRAM_CTRL,
-		input 	[31:0] 	TB_LOAD_PROGRAM_DATA,
-		input 	[9:0]	TB_LOAD_PROGRAM_ADDR,
+		input 	HAZARD_ctrl_o 	HAZARD,
+		input 					TB_LOAD_PROGRAM_CTRL,
+		input 	[31:0] 			TB_LOAD_PROGRAM_DATA,
+		input 	[9:0]			TB_LOAD_PROGRAM_ADDR,
 
-		input 	[31:0] 	MEM_in_PC_link,
-		input 			HAZARD_wrong_P,
-		input 	[31:0] 	MEM_toPC,
-		input 			HAZARD_mask,
+		input 	[31:0] 	MEM_in_PC_jump,
+		input 	[31:0] 	MEM_in_ALU_res,
 
 		output 		[31:0] 	PC_link,
 		output 		[31:0] 	PC_add,
 	    output 	reg [31:0] 	instr,
-	    output 				FETCH_P,
-		output				PCSrc_BP_out,
-		output 				TEST_EN_OUT
+		output 				TEST_EN_OUT,
+		output 	FSM_PCSrc
 );
 
 //---------------------- Fetch Stage VAR---------------------------------//
@@ -27,7 +22,6 @@ module FETCH_Block (
 	
 	wire [31:0] 	FETCH_BF_data_out; // Target ADD by Cache_Branch
 	wire [31:0] 	FETCH_PC_toMUX; // From PC to MUX
-	reg 			FETCH_BF_sel_out;
 	CACHE_BRANCH 	FETCH_in_BF;
 
 	// Instruction Memory Port MAP
@@ -42,8 +36,7 @@ module FETCH_Block (
 	reg 			TEST_MEM_WE;
 	reg [9:0] 		TEST_MEM_ADDR;
 	reg [31:0] 		TEST_MEM_DATA;
-	reg PC_changed;
-	wire FSM_PCSrc;
+	wire _FSM_PCSrc;
 	wire MEM_CSB_OUT;
 	wire MEM_WE;
 	wire ICACHE_WEn;
@@ -57,39 +50,26 @@ module FETCH_Block (
 
 //---------------------- Fetch Stage---------------------------------//
 
-	assign PC_changed = HAZARD_wrong_P;
-
-	//cache branch adressing
-	Cache_Branch CB(
-		.op1(FETCH_PC_toMUX[7:2]),
-		.data_out(FETCH_in_BF)
-	);
-
-	Branch_Fetch BF(
-		.TAG_PC(FETCH_PC_toMUX[10:5]), // MSB address to compare with cache's TAG //tag[9:5]
-		.next_add_PC(MEM_in_PC_link), // contain next address of PC of previous prediction
-		.wrong_P(HAZARD_wrong_P), // in case of previous prediction is wrong
-		.data_out_CACHE(FETCH_in_BF),
-		.sel_MUX_Branch_P(FETCH_BF_sel_out),
-		.P(FETCH_P), // mark a prediction (in order to check it in future)
-		.add_P(FETCH_BF_data_out)
-	);
-
+	// keep PC procede in sequence (correct prediction)
+	assign PC_add = FETCH_PC_toMUX;
+	assign PC_link = FETCH_PC_toMUX + 4;
+	assign FSM_PCSrc = _FSM_PCSrc;
+	
 	always @ (*)
-		if (FETCH_BF_sel_out == 1'b1)
-			PC_Input = FETCH_BF_data_out;
-		else if (PCSrc_BP_out == 1'b1)
-			PC_Input = MEM_toPC;
+		if (HAZARD.PCSrc == next_pc)
+			PC_Input = FETCH_PC_toMUX + 4;
+		else if (HAZARD.PCSrc == branch_alu)
+			PC_Input = MEM_in_ALU_res;
+		else if (HAZARD.PCSrc == branch_pc_jump)
+			PC_Input = MEM_in_PC_jump; 
+		else if (HAZARD.PCSrc == Z)
+			PC_Input = 32'bz;
 		else
-			PC_Input = PC_link;
+			PC_Input = 32'bx;
+	
 
 	always @ (*) begin
-		if (match == 1'b1)
-			enable_PC = HAZARD_BP_o.En_PC & EN & TEST_EN;
-		else if (HAZARD_wrong_P == 1'b1)
-			enable_PC = EN;
-		else
-			enable_PC = HAZARD_BP_o.En_PC & EN & TEST_EN & FSM_PCSrc;
+		enable_PC = HAZARD.En_PC & EN & TEST_EN;
 	end
 
 	flip_flop_pc PC0 (
@@ -109,13 +89,13 @@ module FETCH_Block (
 	  .clk         (CLK        ),
 	  .rstn        (RSTn       ),
 	  .match       (match      ),
-	  .PC_changed  (PC_changed ),
+	  .PC_changed  (1'b0),
 	  .TEST_MEM_DATA(TEST_MEM_DATA),
 
 	  .FSM_SEL     (FSM_SEL    ),
 	  .ICACHE_WEn  (ICACHE_WEn ),
 	  .MEM_CSB_OUT (MEM_CSB_OUT),
-	  .PCSrc       (FSM_PCSrc  ),
+	  .PCSrc       (_FSM_PCSrc  ),
 	  .TEST_EN	   (TEST_EN),     		
 	  .TEST_MEM_WE (TEST_MEM_WE)
 	);
@@ -160,7 +140,6 @@ module FETCH_Block (
 
 	wire [31:0] data_cache_out;
 
-
 	ICACHE ICACHE0(
 	  .offset         (FETCH_PC_toMUX[5:2]),
 	  .TAG_in         (FETCH_PC_toMUX[9:6]),
@@ -175,17 +154,8 @@ module FETCH_Block (
 	  .data           (data_cache_out)
 	);
 
-	add_unit1 add_unit0(
-   		.op1    (FETCH_PC_toMUX),
-   		.result (PC_link)
-	);
-
-	// keep PC procede in sequence (correct prediction)
-	assign PCSrc_BP_out = PCSrc & (~HAZARD_mask);
-	assign PC_add = FETCH_PC_toMUX;
-
 	always @ (*) begin
-		if (!HAZARD_BP_o.En_IFID & !RSTn)
+		if (!HAZARD.En_IFID & !RSTn)
 			instr = 32'b0;
 		else if (match == 1'b1)
 			instr = data_cache_out;

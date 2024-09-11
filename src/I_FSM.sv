@@ -65,7 +65,7 @@ module I_FSM(
 			end
 		end
 		
-		always @ (counter, counter1, TEST_MEM_DATA, match, MEM_WE, PC_changed) begin
+		always @ (counter, counter1, TEST_MEM_DATA, MEM_WE, PC_changed) begin
 			next_state = current_state;
 			case (current_state) 
 				STARTUP: begin // Wait for reset
@@ -91,7 +91,7 @@ module I_FSM(
 				IDLE: begin
 					if (max_cnt == 4'hF)
 						next_state = RESTART;
-					else if (match == 1'b0 & MEM_WE == 1'b1)
+					else if (MEM_WE == 1'b1)
 						next_state = MEMREAD;
 					else
 						next_state = IDLE;
