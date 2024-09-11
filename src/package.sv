@@ -12,7 +12,7 @@ typedef enum bit [1:0]	{NOP = 2'b01, IMEM = 2'b10} FSM_Control_Enum;
 
 typedef enum bit [2:0] {
 	next_pc = 3'b000,
-	nop		= 3'b010,
+	Z		= 3'b010,
 	branch_alu  = 3'b011,
 	branch_pc_jump = 3'b100
 } PCSrc_Enum;

@@ -62,10 +62,10 @@ module FETCH_Block (
 			PC_Input = MEM_in_ALU_res;
 		else if (HAZARD.PCSrc == branch_pc_jump)
 			PC_Input = MEM_in_PC_jump; 
-		else if (HAZARD.PCSrc == nop)
-			PC_Input = 32'h00000000;
+		else if (HAZARD.PCSrc == Z)
+			PC_Input = 32'bz;
 		else
-			PC_Input = 32'h00000000;
+			PC_Input = 32'bx;
 	
 
 	always @ (*) begin

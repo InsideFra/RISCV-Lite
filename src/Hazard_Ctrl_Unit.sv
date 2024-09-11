@@ -51,8 +51,8 @@ module Hazard_Ctrl_Unit (
 	
 	assign HAZARD_o.Ctrl_Mux_EX 	= Ctrl_Mux_EX; 	// next cycle nop in memory
 	assign HAZARD_o.Ctrl_Mux_DE 	= Ctrl_Mux_DE; 	// next cycle nop in execute
-	assign HAZARD_o.En_IFID 		= En_IFID; 		// next cycle nop in decode
+	assign HAZARD_o.En_IFID 		= En_IFID & HAZARD_i.FSM_PCSrc; 		// next cycle nop in decode
 	assign HAZARD_o.En_PC 			= En_PC & HAZARD_i.FSM_PCSrc;	// next cycle branch in fetch
 	
-	assign HAZARD_o.PCSrc			= HAZARD_i.FSM_PCSrc == 1'b1 ? (branch == 1'b1 ? (HAZARD_i.MEM_in_M_AddtoPC ? branch_alu : branch_pc_jump) : next_pc) : nop;
+	assign HAZARD_o.PCSrc			= HAZARD_i.FSM_PCSrc == 1'b1 ? (branch == 1'b1 ? (HAZARD_i.MEM_in_M_AddtoPC ? branch_alu : branch_pc_jump) : next_pc) : Z;
 endmodule
