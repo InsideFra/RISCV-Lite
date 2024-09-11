@@ -265,6 +265,7 @@ module DataPath (
 	wire 		MEM_in_Rd_EQ0;
 	wire 		MEM_in_P;
 	wire [31:0] MEM_in_PC_link;
+	wire [31:0] MEM_in_PC;
 
 	// Pipeline Register
 	EX_Mem_Reg ex_mem_reg (
@@ -272,6 +273,7 @@ module DataPath (
     	.in_M           (EX_in_M          ),
     	.in_PC_link     (EX_in_PC_link    ),
     	.in_PC_jump     (EX_PC_jump    ),
+    	.in_PC     		(EX_in_PC_add),			// This signal is here because I would like to bring the PC until the WB stage
     	.in_bit_branch  (EX_bit_branch ),
     	.in_ALU_res     (EX_ALUResult),
     	.in_reg_data_2  (EX_in_reg_data_2),
@@ -287,6 +289,7 @@ module DataPath (
     	.out_M          (MEM_in_M),
     	.out_PC_link    (MEM_in_PC_link),
     	.out_PC_jump    (MEM_in_PC_jump),
+    	.out_PC		    (MEM_in_PC),
     	.out_bit_branch (MEM_in_bit_branch),
     	.out_reg_data_2 (MEM_in_reg_data_2),
     	.out_ALU_res    (MEM_in_ALU_res),
