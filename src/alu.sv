@@ -26,7 +26,7 @@ module ALU (input wire [31:0] op1,
 	assign SRAI_Result = $signed(op1) >>> 31;
 
 	wire [31:0] SLLI_Result;
-	assign SLLI_Result = op1 << 2;
+	assign SLLI_Result = op1 << op2;
 	
 	wire [31:0] OR_Result;
 	assign OR_Result = op1 | op2;
@@ -56,6 +56,8 @@ module ALU (input wire [31:0] op1,
 			SLL: begin
 				ALUResult = SLLI_Result;
 				BIT_Branch = 1'b0;
+				assert (op2 >= 0 && op2 <= 32) else $error("[ALU] SLL: op2 out of range %d", op2);
+				$display("[ALU] SLL: Input: %h, Shift Amount: %h, Output: %h", op1, op2, SLLI_Result);
 			end
 			SRA: begin
 				ALUResult = SRAI_Result;

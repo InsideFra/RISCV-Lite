@@ -49,6 +49,11 @@ loop_init:
 	or 	a7, s0, ra
 	li	s2, 0x7fffeffc
 	bne	a7, s2, end_loop 
+
+	li 	s2, 0x12
+	sll 	a7, s0, s2
+	li	s2, 0xbff00000
+	bne	a7, s2, end_loop  
 	
 	bge	a4,a1, end_loop
 	

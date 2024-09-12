@@ -17,7 +17,7 @@
  - [x] **SUB**: Subtracts **RS1** and **RS2** and stores the result in **RD**.
  - [x] **AND**: Performs a bitwise AND between **RS1** and **RS2** and stores the result in **RD**.
  - [x] **OR**: Performs a bitwise OR between **RS1** and **RS2** and stores the result in **RD**.
- - [ ] **SLL**: Performs a logical left shift on **RS1** by the value in **RS2** and stores the result in **RD**.
+ - [x] **SLL**: Performs a logical left shift on **RS1** by the value in **RS2** and stores the result in **RD**.
  - [ ] **SRL**: Performs a logical right shift on **RS1** by the value in **RS2** and stores the result in **RD**.
  - [ ] **SRA**: Performs an arithmetic right shift on **RS1** by the value in **RS2** and stores the result in **RD**.
  - [ ] **SLT**: Sets **RD** to 1 if **RS1** is less than **RS2**, otherwise sets **RD** to 0.
