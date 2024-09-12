@@ -28,6 +28,9 @@ module ALU (input wire [31:0] op1,
 	wire [31:0] SLLI_Result;
 	assign SLLI_Result = op1 << 2;
 	
+	wire [31:0] OR_Result;
+	assign OR_Result = op1 | op2;
+	
 	always @ (op1, op2, ALUControl) begin
 		case (ALUControl)
 			ADD: begin
@@ -36,6 +39,10 @@ module ALU (input wire [31:0] op1,
 			end
 			XOR: begin
 		    	ALUResult = XOR_Result;	
+				BIT_Branch = 1'b0;
+			end
+			OR: begin
+		    	ALUResult = OR_Result;	
 				BIT_Branch = 1'b0;
 			end
 			AND: begin

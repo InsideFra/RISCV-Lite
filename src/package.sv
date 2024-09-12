@@ -6,6 +6,7 @@ typedef enum bit [3:0] 	{ // Bit [30] + [14:12]
 	ADD=4'b0000, 
 	SLL=4'b0001, 
 	XOR=4'b0100,
+	OR =4'b0110,
 	SRA=4'b0101, 
 	AND=4'b0111,
 	SUB=4'b1000,

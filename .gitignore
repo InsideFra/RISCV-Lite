@@ -4,4 +4,7 @@ run/work
 sim/run
 *.bin
 
+*.elf
+*.o
+*.hex
 

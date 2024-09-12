@@ -41,12 +41,14 @@ loop_init:
 	srai	a5,a2,0x1f
 	xor	a2,a5,a2
 	sub	a2,a2,a5
-
-	# AND INSTRUCTION TESTING	
+	
 	and 	a7, s0, ra
 	li	s2, 0x00400034
-	bne	a7, s2, end_loop
-	# AND INSTRUCTION TESTING END 
+	bne	a7, s2, end_loop 
+	
+	or 	a7, s0, ra
+	li	s2, 0x7fffeffc
+	bne	a7, s2, end_loop 
 	
 	bge	a4,a1, end_loop
 	
