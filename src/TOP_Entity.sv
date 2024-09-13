@@ -1,10 +1,10 @@
 import my_pkg::*;
 module DataPath (
 	input reg 			TB_LOAD_PROGRAM_CTRL,
-	input reg [9:0] 	TB_LOAD_PROGRAM_ADDR,
+	input reg [19:0] 	TB_LOAD_PROGRAM_ADDR,
 	input reg [31:0]	TB_LOAD_PROGRAM_DATA,
 	input reg 			TB_LOAD_DATA_CTRL,
-	input reg [9:0] 	TB_LOAD_DATA_ADDR,
+	input reg [19:0] 	TB_LOAD_DATA_ADDR,
 	input reg [31:0]	TB_LOAD_DATA_DATA,
 	input reg 			CLK, 	// General Architecture Clock
 	input reg 			EN,		// General Architecture Enable
@@ -140,8 +140,6 @@ module DataPath (
 	wire 			ID_Rd_EQ0;
 	wire 			ID_sel_mux;
 	
-	reg [31:0]	EX_in_instr; // this wire is for test purpose
-	
 	assign ID_Rs2 = ID_in_instr [24:20];
 	assign ID_Rd  = ID_in_instr [11:7];
 	assign ID_in_ALU_ctrl = {ID_in_instr[30], ID_in_instr[14:12]};
@@ -165,8 +163,7 @@ module DataPath (
 	  .ID_reg_data_2  (ID_reg_data_2 ),
 	  .ID_Rs1         (ID_Rs1        ),
 	  .ID_sel_mux	  (ID_sel_mux	 ),
-	  .ID_Rd_EQ0      (ID_Rd_EQ0	 ),
-	  .EX_in_instr    (EX_in_instr   ) // this wire is for test purpose
+	  .ID_Rd_EQ0      (ID_Rd_EQ0	 )
 	);
 
 //ID_EX Reg//
@@ -179,7 +176,8 @@ module DataPath (
 	wire [31:0] EX_in_imm;
 	wire [31:0] EX_in_reg_data_2;
     reg  [31:0] EX_in_reg_data_1;
-    reg  [3:0] 	EX_in_ALU_ctrl;
+    reg  [31:0] EX_in_instr;
+    reg  [3:0]	EX_in_imm_funct;
     reg  [4:0] 	EX_in_Rd;
 	reg			EX_in_Rd_EQ0;
     reg      	EX_in_P;
@@ -202,25 +200,28 @@ module DataPath (
         .in_Rs1(ID_Rs1),
         .in_Rs2(ID_Rs2),
     	.in_P  (ID_in_P),
-        .clk(CLK),
+		.in_instr(ID_in_instr),
+        
+		.clk(CLK),
         .rstn(RSTn & ID_sel_mux),
         .en(EN & START & enable_general & TEST_FE_EN),
         
 		// output
-		.out_WB(EX_in_WB),
-        .out_M(EX_in_M),
-        .out_EX(EX_in_EX),
+		.out_WB		(EX_in_WB),
+        .out_M		(EX_in_M),
+        .out_EX		(EX_in_EX),
         .out_PC_link(EX_in_PC_link),
-        .out_PC_add(EX_in_PC_add), 
-        .out_imm(EX_in_imm),
-		.out_reg_data_1(EX_in_reg_data_1),	
-		.out_reg_data_2(EX_in_reg_data_2),	
-        .out_ALU_ctrl(EX_in_ALU_ctrl),
-        .out_Rd(EX_in_Rd),
-		.out_Rd_EQ0(EX_in_Rd_EQ0),
-        .out_Rs1(EX_in_Rs1),
-        .out_Rs2(EX_in_Rs2),       
-    	.out_P  (EX_in_P)
+        .out_PC_add	(EX_in_PC_add), 
+        .out_imm	(EX_in_imm),
+		.out_reg_data_1	(EX_in_reg_data_1),	
+		.out_reg_data_2	(EX_in_reg_data_2),	
+        .out_ALU_ctrl	(EX_in_imm_funct),
+        .out_Rd		(EX_in_Rd),
+		.out_Rd_EQ0	(EX_in_Rd_EQ0),
+        .out_Rs1	(EX_in_Rs1),
+        .out_Rs2	(EX_in_Rs2),       
+    	.out_P  	(EX_in_P),
+	  	.out_instr	(EX_in_instr   ) // this wire is for test purpose
 	); 
 	
 // END
@@ -245,11 +246,10 @@ module DataPath (
 	  .EX_in_imm        (EX_in_imm       ),
 	  .EX_in_reg_data_2 (EX_in_reg_data_2),
 	  .EX_in_reg_data_1 (EX_in_reg_data_1),
-	  .EX_in_ALU_ctrl   (EX_in_ALU_ctrl  ),
+	  .imm_funct   		(EX_in_imm_funct ),
 	  .WB_Mux_Mux_out   (WB_Mux_Mux_out  ),
 	  .MEM_in_instr     (MEM_in_instr    ),
 	  .MEM_in_ALU_res   (MEM_in_ALU_res  ),
-	  .EX_in_instr      (EX_in_instr     ),
 	  
 	  // output
 	  .EX_PC_jump       (EX_PC_jump      ),
@@ -298,6 +298,15 @@ module DataPath (
     	.out_P          (MEM_in_P)
 	); 
 	
+	always @(posedge CLK) begin
+		if ( (EN & START & enable_general & TEST_FE_EN) & (RSTn & HAZARD_o.Ctrl_Mux_EX)) begin
+			if (EX_in_instr != 32'h0 & EX_in_instr != 32'h6f & EX_in_instr != 32'h8067) begin
+				// $display("[EXECUTE PC: %h] ALUOp: %s\t\tinstr: %h\t\tResult: %h", EX_in_PC_link, EX_in_EX.ALUop.name(), EX_in_instr, EX_ALUResult);
+			end
+		end
+	end
+	
+
 // END
 
 

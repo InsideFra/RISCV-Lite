@@ -75,46 +75,46 @@ add wave -noupdate -group FE_DE_REG -radix hexadecimal /DP_TB/DP_uut/if_id_reg0/
 add wave -noupdate -group FE_DE_REG -radix hexadecimal /DP_TB/DP_uut/if_id_reg0/out_PC_add
 add wave -noupdate -group FE_DE_REG -radix hexadecimal /DP_TB/DP_uut/if_id_reg0/out_instr
 add wave -noupdate -group FE_DE_REG /DP_TB/DP_uut/if_id_reg0/out_P
-add wave -noupdate -group RF -radix unsigned /DP_TB/DP_uut/DE0/ID_RF/rs1
-add wave -noupdate -group RF -radix unsigned /DP_TB/DP_uut/DE0/ID_RF/rs2
-add wave -noupdate -group RF -radix unsigned /DP_TB/DP_uut/DE0/ID_RF/rd
-add wave -noupdate -group RF -radix hexadecimal /DP_TB/DP_uut/DE0/ID_RF/write_data
-add wave -noupdate -group RF /DP_TB/DP_uut/DE0/ID_RF/RegWrite
-add wave -noupdate -group RF /DP_TB/DP_uut/DE0/ID_RF/RSTn
-add wave -noupdate -group RF /DP_TB/DP_uut/DE0/ID_RF/clk
-add wave -noupdate -group RF /DP_TB/DP_uut/DE0/ID_RF/en
-add wave -noupdate -group RF -radix hexadecimal /DP_TB/DP_uut/DE0/ID_RF/read_data1
-add wave -noupdate -group RF -radix hexadecimal /DP_TB/DP_uut/DE0/ID_RF/read_data2
-add wave -noupdate -group RF /DP_TB/DP_uut/DE0/ID_RF/i
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/CLK
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/EN
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/RSTn
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/START
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_in_instr
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/WB_in_Rd
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/WB_Mux_Mux_out
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/HAZARD_BP_o
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/WB_in_WB
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_in_WB
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_in_M
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_in_EX
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_imm
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_reg_data_1
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_reg_data_2
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_Rs1
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_sel_mux
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_Rd_EQ0
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_RegWrite
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_opcode
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_WB_c
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_M_c
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_EX_c
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/MUX_ID_Rs1
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_reg_data_1_BM
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_reg_data_2_BM
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_Rs2
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_Rd
-add wave -noupdate -group DE /DP_TB/DP_uut/DE0/ID_in_ALU_ctrl
+add wave -noupdate -expand -group RF -radix unsigned /DP_TB/DP_uut/DE0/ID_RF/rs1
+add wave -noupdate -expand -group RF -radix unsigned /DP_TB/DP_uut/DE0/ID_RF/rs2
+add wave -noupdate -expand -group RF -radix unsigned /DP_TB/DP_uut/DE0/ID_RF/rd
+add wave -noupdate -expand -group RF -radix hexadecimal /DP_TB/DP_uut/DE0/ID_RF/write_data
+add wave -noupdate -expand -group RF /DP_TB/DP_uut/DE0/ID_RF/RegWrite
+add wave -noupdate -expand -group RF /DP_TB/DP_uut/DE0/ID_RF/RSTn
+add wave -noupdate -expand -group RF /DP_TB/DP_uut/DE0/ID_RF/clk
+add wave -noupdate -expand -group RF /DP_TB/DP_uut/DE0/ID_RF/en
+add wave -noupdate -expand -group RF -radix hexadecimal /DP_TB/DP_uut/DE0/ID_RF/read_data1
+add wave -noupdate -expand -group RF -radix hexadecimal /DP_TB/DP_uut/DE0/ID_RF/read_data2
+add wave -noupdate -expand -group RF /DP_TB/DP_uut/DE0/ID_RF/i
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/CLK
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/EN
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/RSTn
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/START
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_in_instr
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/WB_in_Rd
+add wave -noupdate -expand -group DE -radix hexadecimal /DP_TB/DP_uut/DE0/WB_Mux_Mux_out
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/HAZARD_BP_o
+add wave -noupdate -expand -group DE -expand /DP_TB/DP_uut/DE0/WB_in_WB
+add wave -noupdate -expand -group DE -expand /DP_TB/DP_uut/DE0/ID_in_WB
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_in_M
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_in_EX
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_imm
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_reg_data_1
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_reg_data_2
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_Rs1
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_sel_mux
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_Rd_EQ0
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_RegWrite
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_opcode
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_WB_c
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_M_c
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_EX_c
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/MUX_ID_Rs1
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_reg_data_1_BM
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_reg_data_2_BM
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_Rs2
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_Rd
+add wave -noupdate -expand -group DE /DP_TB/DP_uut/DE0/ID_in_ALU_ctrl
 add wave -noupdate -group DE_EX_REG -expand /DP_TB/DP_uut/ID_EX_M_r/in_WB
 add wave -noupdate -group DE_EX_REG -expand /DP_TB/DP_uut/ID_EX_M_r/in_M
 add wave -noupdate -group DE_EX_REG -expand /DP_TB/DP_uut/ID_EX_M_r/in_EX
@@ -146,16 +146,16 @@ add wave -noupdate -group DE_EX_REG /DP_TB/DP_uut/ID_EX_M_r/out_Rs1
 add wave -noupdate -group DE_EX_REG /DP_TB/DP_uut/ID_EX_M_r/out_Rs2
 add wave -noupdate -group DE_EX_REG /DP_TB/DP_uut/ID_EX_M_r/out_Rd_EQ0
 add wave -noupdate -group DE_EX_REG -radix hexadecimal /DP_TB/DP_uut/ID_EX_M_r/in_PC_add
-add wave -noupdate -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/op1
-add wave -noupdate -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/op2
-add wave -noupdate -group ALU /DP_TB/DP_uut/EX0/alu_unit0/ALUControl
-add wave -noupdate -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/ALUResult
-add wave -noupdate -group ALU /DP_TB/DP_uut/EX0/alu_unit0/BIT_Branch
-add wave -noupdate -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/ADD_Result
-add wave -noupdate -group ALU /DP_TB/DP_uut/EX0/alu_unit0/XOR_Result
-add wave -noupdate -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/SUB_Result
-add wave -noupdate -group ALU /DP_TB/DP_uut/EX0/alu_unit0/SRAI_Result
-add wave -noupdate -group ALU /DP_TB/DP_uut/EX0/alu_unit0/SLLI_Result
+add wave -noupdate -expand -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/op1
+add wave -noupdate -expand -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/op2
+add wave -noupdate -expand -group ALU /DP_TB/DP_uut/EX0/alu_unit0/ALUControl
+add wave -noupdate -expand -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/ALUResult
+add wave -noupdate -expand -group ALU /DP_TB/DP_uut/EX0/alu_unit0/BIT_Branch
+add wave -noupdate -expand -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/ADD_Result
+add wave -noupdate -expand -group ALU /DP_TB/DP_uut/EX0/alu_unit0/XOR_Result
+add wave -noupdate -expand -group ALU -radix decimal /DP_TB/DP_uut/EX0/alu_unit0/SUB_Result
+add wave -noupdate -expand -group ALU /DP_TB/DP_uut/EX0/alu_unit0/SRAI_Result
+add wave -noupdate -expand -group ALU /DP_TB/DP_uut/EX0/alu_unit0/SLLI_Result
 add wave -noupdate -group EX /DP_TB/DP_uut/EX0/CLK
 add wave -noupdate -group EX /DP_TB/DP_uut/EX0/EN
 add wave -noupdate -group EX /DP_TB/DP_uut/EX0/RSTn
@@ -220,11 +220,11 @@ add wave -noupdate -group D_FSM /DP_TB/DP_uut/fsm0/counter
 add wave -noupdate -group D_FSM /DP_TB/DP_uut/fsm0/max_cnt
 add wave -noupdate -group D_FSM /DP_TB/DP_uut/fsm0/enable_counter
 add wave -noupdate -group D_FSM /DP_TB/DP_uut/fsm0/reset_cnt
-add wave -noupdate -childformat {{/DP_TB/DP_uut/fu_unit0/FU_i.Mem_rd -radix unsigned} {/DP_TB/DP_uut/fu_unit0/FU_i.WB_rd -radix unsigned} {/DP_TB/DP_uut/fu_unit0/FU_i.EX_rs1 -radix unsigned} {/DP_TB/DP_uut/fu_unit0/FU_i.EX_rs2 -radix unsigned}} -expand -subitemconfig {/DP_TB/DP_uut/fu_unit0/FU_i.Mem_rd {-radix unsigned} /DP_TB/DP_uut/fu_unit0/FU_i.WB_rd {-radix unsigned} /DP_TB/DP_uut/fu_unit0/FU_i.EX_rs1 {-radix unsigned} /DP_TB/DP_uut/fu_unit0/FU_i.EX_rs2 {-radix unsigned}} /DP_TB/DP_uut/fu_unit0/FU_i
+add wave -noupdate -childformat {{/DP_TB/DP_uut/fu_unit0/FU_i.Mem_rd -radix unsigned} {/DP_TB/DP_uut/fu_unit0/FU_i.WB_rd -radix unsigned} {/DP_TB/DP_uut/fu_unit0/FU_i.EX_rs1 -radix unsigned} {/DP_TB/DP_uut/fu_unit0/FU_i.EX_rs2 -radix unsigned}} -expand -subitemconfig {/DP_TB/DP_uut/fu_unit0/FU_i.Mem_rd {-height 17 -radix unsigned} /DP_TB/DP_uut/fu_unit0/FU_i.WB_rd {-height 17 -radix unsigned} /DP_TB/DP_uut/fu_unit0/FU_i.EX_rs1 {-height 17 -radix unsigned} /DP_TB/DP_uut/fu_unit0/FU_i.EX_rs2 {-height 17 -radix unsigned}} /DP_TB/DP_uut/fu_unit0/FU_i
 add wave -noupdate /DP_TB/DP_uut/fu_unit0/FU_o
 add wave -noupdate /DP_TB/DP_uut/fsm0/max_cnt
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {435454 ps} 0}
+WaveRestoreCursors {{Cursor 1} {449671 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 285
 configure wave -valuecolwidth 100
@@ -240,4 +240,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {407547 ps} {498635 ps}
+WaveRestoreZoom {430637 ps} {482017 ps}

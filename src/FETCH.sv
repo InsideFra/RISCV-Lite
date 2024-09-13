@@ -5,7 +5,7 @@ module FETCH_Block (
 		input 	HAZARD_ctrl_o 	HAZARD,
 		input 					TB_LOAD_PROGRAM_CTRL,
 		input 	[31:0] 			TB_LOAD_PROGRAM_DATA,
-		input 	[9:0]			TB_LOAD_PROGRAM_ADDR,
+		input 	[19:0]			TB_LOAD_PROGRAM_ADDR,
 
 		input 	[31:0] 	MEM_in_PC_jump,
 		input 	[31:0] 	MEM_in_ALU_res,
@@ -26,7 +26,7 @@ module FETCH_Block (
 
 	// Instruction Memory Port MAP
 	reg 			INSTR_MEM_RE; 	// Instruction Memory Read Enable (== 1 read, else write)
-	reg [9:0] 		INSTR_MEM_ADDR;
+	reg [19:0] 		INSTR_MEM_ADDR;
 	reg [31:0] 		INSTR_MEM_DIN;
 	reg [31:0] 		INSTR_MEM_DOUT;
 	reg 			TEST_EN;
@@ -34,7 +34,7 @@ module FETCH_Block (
 	// FSM Things
 	reg 			TEST_MEM_CSB;
 	reg 			TEST_MEM_WE;
-	reg [9:0] 		TEST_MEM_ADDR;
+	reg [19:0] 		TEST_MEM_ADDR;
 	reg [31:0] 		TEST_MEM_DATA;
 	wire _FSM_PCSrc;
 	wire MEM_CSB_OUT;
@@ -104,9 +104,9 @@ module FETCH_Block (
 		if (TB_LOAD_PROGRAM_CTRL == 1'b1)
 			INSTR_MEM_ADDR = TB_LOAD_PROGRAM_ADDR;
 		else if (TEST_MEM_MUX == 1'b1)
-			INSTR_MEM_ADDR = 10'b1;
+			INSTR_MEM_ADDR = 20'b1;
 		else
-			INSTR_MEM_ADDR = FETCH_PC_toMUX[9:0];
+			INSTR_MEM_ADDR = FETCH_PC_toMUX[19:0];
 	end
 	
 	always @ (*) begin

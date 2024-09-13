@@ -7,9 +7,12 @@ module FU_Unit (input 	FU_ctrl_i 	FU_i,
 always @ (FU_i) begin
 	// Only if forwarding instruction will write to a register
 	if (FU_i.Mem_RegWrite == 1'b1 || FU_i.WB_RegWrite  == 1'b1) begin
+		
 		// Only if Rd for that instruction is not R0
 		if (FU_i.MEM_in_Rd_EQ0 != 1'b0 || FU_i.WB_in_Rd_EQ0 != 1'b0) begin
-			if(FU_i.ALU_src[0]==1'b0)
+			
+			if(FU_i.ALU_src[0] == 1'b0) // Does alu wants to write into rs1?
+				
 				case (FU_i.EX_rs1)
 					5'b0000 : begin
 						FU_o.ForwardA = NOFWA;
@@ -34,6 +37,7 @@ always @ (FU_i) begin
 		FU_o.ForwardA = NOFWA;
 	end	
 end
+
 
 always @ (FU_i) begin
 	// Only if forwarding instruction will write to a register

@@ -18,10 +18,10 @@
  - [x] **AND**: Performs a bitwise AND between **RS1** and **RS2** and stores the result in **RD**.
  - [x] **OR**: Performs a bitwise OR between **RS1** and **RS2** and stores the result in **RD**.
  - [x] **SLL**: Performs a logical left shift on **RS1** by the value in **RS2** and stores the result in **RD**.
- - [ ] **SRL**: Performs a logical right shift on **RS1** by the value in **RS2** and stores the result in **RD**.
- - [ ] **SRA**: Performs an arithmetic right shift on **RS1** by the value in **RS2** and stores the result in **RD**.
- - [ ] **SLT**: Sets **RD** to 1 if **RS1** is less than **RS2**, otherwise sets **RD** to 0.
- - [ ] **SLTU**: Sets **RD** to 1 if **RS1** is less than **RS2** (unsigned comparison), otherwise sets **RD** to 0.
+ - [x] **SRL**: Performs a logical right shift on **RS1** by the value in **RS2** and stores the result in **RD**.
+ - [x] **SRA**: Performs an arithmetic right shift on **RS1** by the value in **RS2** and stores the result in **RD**.
+ - [x] **SLT**: Sets **RD** to 1 if **RS1** is less than **RS2**, otherwise sets **RD** to 0.
+ - [x] **SLTU**: Sets **RD** to 1 if **RS1** is less than **RS2** (unsigned comparison), otherwise sets **RD** to 0.
  
  ### I-Type Instructions
  - [x] **ADDI**: Adds **RS1** and **IMM** and stores the result in **RD**.
@@ -99,6 +99,21 @@
 
  
  The architecture is mainly written as Behavioral, with few pieces written in a structural form.
+
+ # DIGITAL LOGIC TO BE IMPLEMENTED
+ - Memory Managment Unit
+ - Timer
+ - User and Supervisor Mode
+ - L1 Cache (Data and Program)
+ - L2 Cache (Data and Program)
+ - L3 Cache (Data and Program)
+ - TLB
+ - Branch Prediction using Branch History Table
+ - I/O (microSD)
+ - Ethernet
+ - USB (x2 ports)
+ - Contex Switching
+
 
  # Utils
 

@@ -1,41 +1,47 @@
 package my_pkg;
 
-typedef enum bit [1:0] 	{DOADD,TAKE4BIT,TAKE3BIT,BRANCH} ALUOP_Enum;
-
-typedef enum bit [3:0] 	{ // Bit [30] + [14:12]
-	ADD=4'b0000, 
-	SLL=4'b0001, 
-	XOR=4'b0100,
-	OR =4'b0110,
-	SRA=4'b0101, 
-	AND=4'b0111,
-	SUB=4'b1000,
-	BNE=4'b1001, 
-	BLE=4'b1101
-} ALUControl_Enum;
+// ALU operation codes
+typedef enum logic [4:0] {
+	ALU_ADD  = 5'b00000,
+	ALU_SUB  = 5'b00001,
+	ALU_AND  = 5'b00010,
+	ALU_OR   = 5'b00011,
+	ALU_XOR  = 5'b00100,
+	ALU_SLT  = 5'b00101,
+	ALU_SLTU = 5'b00110,
+	ALU_SLL  = 5'b00111,
+	ALU_SRL  = 5'b01000,
+	ALU_SRA  = 5'b01001,
+	ALU_NOP  = 5'b01111,
+    ALU_BEQ  = 5'b10000,
+    ALU_BNE  = 5'b10001,
+    ALU_BLT  = 5'b10010,
+    ALU_BGE  = 5'b10011,
+    ALU_BLTU = 5'b10100,
+    ALU_BGEU = 5'b10101
+} alu_ops_t;
 
 typedef enum bit [2:0] 	{NOFWA=3'b001, FWA_MEMD=3'b010, FWA_ALURSLT=3'b100} ForwardA_Control_Enum;
 typedef enum bit [2:0] 	{NOFWB=3'b001, FWB_MEMD=3'b010, FWB_ALURSLT=3'b100} ForwardB_Control_Enum;
 
-// currently not used
-// typedef enum reg [31:0] {
-// 	LUIOP, 
-// 	AUIPCOP, 
-// 	SWOP, 
-// 	ADDOP, 
-// 	XOROP,
-// 	ANDOP, 
-// 	SUBOP, 
-// 	SLLIOP, 
-// 	SRAIOP, 
-// 	ADDIOP, 
-// 	LWOP, 
-// 	JALROP, 
-// 	JALOP, 
-// 	BNEOP, 
-// 	BLEOP, 
-// 	NOPOP
-// }	Instruction_Enum;
+typedef enum reg [31:0] {
+	LUIOP, 
+	AUIPCOP, 
+	SWOP, 
+	ADDOP, 
+	XOROP,
+	ANDOP, 
+	SUBOP, 
+	SLLIOP, 
+	SRAIOP, 
+	ADDIOP, 
+	LWOP, 
+	JALROP, 
+	JALOP, 
+	BNEOP, 
+	BLEOP, 
+	NOPOP
+}	Instruction_Enum;
 
 typedef enum reg   [3:0] 	{STARTUP, STARTUP0,STARTUP1,STARTUP2,STARTUP3,STARTUP4,IDLE, MEMREAD,RESTART} FSM_MEM_states_reg;
 
@@ -70,7 +76,8 @@ typedef struct packed{
 
 typedef struct packed {
 	reg [1:0] ALUsrc;
-	ALUOP_Enum ALUop;
+	alu_ops_t ALUop;
+	reg branch;
 }EX_ctrl;
 
 typedef struct packed {

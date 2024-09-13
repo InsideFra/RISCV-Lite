@@ -16,9 +16,6 @@ module DECODE_Block (
 	output [31:0] 	ID_reg_data_2,
 	output [4:0] 	ID_Rs1,
 	output 			ID_sel_mux,
-	// testbench
-	output [31:0] 	EX_in_instr,
-	// end testbench
 	output 			ID_Rd_EQ0
 );
 
@@ -69,8 +66,15 @@ module DECODE_Block (
            .read_data2(ID_reg_data_2_BM)
 	);					
 	
-	assign ID_opcode = ID_in_instr [6:0];
-	control ID_CRTL (.opcode(ID_opcode), .WB(ID_WB_c), .M(ID_M_c), .EX(ID_EX_c));
+	always @(posedge CLK) begin
+		if ( (EN) & (START)) begin
+			if (WB_in_WB.RegWrite == 1'b1) begin
+				$display("[RF] rd: %d\t\tdata: %h", WB_in_Rd, WB_Mux_Mux_out);
+			end
+		end
+	end
+	
+	control ID_CTRL (.instruction(ID_in_instr), .WB(ID_WB_c), .M(ID_M_c), .EX(ID_EX_c));
 
 	imm_gen ID_IG (.instruction_i(ID_in_instr), .immediate_o(ID_imm));
 
@@ -79,15 +83,5 @@ module DECODE_Block (
 	assign ID_in_EX = ID_EX_c;
 
 	assign ID_sel_mux = HAZARD_BP_o.Ctrl_Mux_DE;
-	
-	// testbench - can be deleted 
-	flip_flop id_ex_instr (
-			.d(ID_in_instr), 
-			.rstn(RSTn & ID_sel_mux), 
-			.clk(CLK), 
-			.en(EN), 
-			.q(EX_in_instr)
-	);
-	// end
 	
 endmodule

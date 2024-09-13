@@ -54,6 +54,36 @@ loop_init:
 	sll 	a7, s0, s2
 	li	s2, 0xbff00000
 	bne	a7, s2, end_loop  
+
+	li 	s2, 0x12
+	srl 	a7, s0, s2
+	li	s2, 0x1fff
+	bne	a7, s2, end_loop  
+
+	li 	s2, 0x12
+	sra 	a7, s0, s2
+	li	s2, 0x1fff
+	bne	a7, s2, end_loop 
+	
+	li 	s2, 0x12
+	slt 	a7, s0, s2
+	li	s2, 0x0
+	bne	a7, s2, end_loop
+	
+	li 	s2, 0x7fffffff
+	slt 	a7, s0, s2
+	li	s2, 0x1
+	bne	a7, s2, end_loop
+	
+	li 	s2, 0xffffffff
+	slt 	a7, s0, s2
+	li	s2, 0x0
+	bne	a7, s2, end_loop 
+
+	li 	s2, 0xffffffff
+	sltu 	a7, s0, s2
+	li	s2, 0x1
+	bne	a7, s2, end_loop    
 	
 	bge	a4,a1, end_loop
 	

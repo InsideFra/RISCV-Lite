@@ -15,6 +15,7 @@ module ID_EX_Reg (
 	input reg [4:0] 	in_Rs2,
 	input reg			in_Rd_EQ0,
 	input reg 			in_P,
+	input reg [31:0]	in_instr,	
 	input reg 			clk,
 	input reg 			rstn,
 	input reg 			en,
@@ -28,6 +29,7 @@ module ID_EX_Reg (
 	output reg [31:0]	out_reg_data_2,	
 	output reg [3:0] 	out_ALU_ctrl,
 	output reg 			out_P,
+	output reg [31:0]	out_instr,	
 	output reg [4:0] 	out_Rd,
 	output reg [4:0] 	out_Rs1,
 	output reg [4:0] 	out_Rs2,
@@ -51,6 +53,7 @@ always @ (posedge clk) begin
         out_Rd			<= 5'b0;
         out_Rd_EQ0		<= 5'b0;
         out_P			<= 5'b0;
+        out_instr		<= 32'b0;
         out_Rs1			<= 5'b0;
         out_Rs2       	<= 5'b0;
 	end
@@ -67,6 +70,7 @@ always @ (posedge clk) begin
         out_Rd			<=in_Rd;  
         out_Rd_EQ0		<=in_Rd_EQ0;  
         out_P			<=in_P;  
+        out_instr		<=in_instr;  
         out_Rs1			<=in_Rs1;  
         out_Rs2       	<=in_Rs2;
 	end

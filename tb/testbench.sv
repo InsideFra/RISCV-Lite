@@ -1,11 +1,11 @@
 `timescale 1 ns / 1 ps
 module DP_TB ();	
 	reg 		TB_LOAD_PROGRAM_CTRL;
-	reg [9:0]  	TB_LOAD_PROGRAM_ADDR;
+	reg [19:0]  TB_LOAD_PROGRAM_ADDR;
 	reg [31:0] 	TB_LOAD_PROGRAM_DATA;
 	
 	reg 		TB_LOAD_DATA_CTRL;
-	reg [9:0]  	TB_LOAD_DATA_ADDR;
+	reg [19:0]  TB_LOAD_DATA_ADDR;
 	reg [31:0] 	TB_LOAD_DATA_DATA;
 	
 	reg CLK;
@@ -31,11 +31,11 @@ module DP_TB ();
 	);
 
 	integer instr_file;
-	integer instr_toload[200];
+	integer instr_toload[2 << (16)];
 	integer instr_cnt = 0;
 	
 	integer data_file;
-	integer data_toload[200];
+	integer data_toload[2 << (16)];
 	integer data_cnt = 0;
 
 	initial begin

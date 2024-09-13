@@ -2,7 +2,6 @@
 ../../src/ff.sv         	
 ../../src/add.sv            	
 ../../src/alu.sv            	
-../../src/alu_control.sv    	
 ../../src/control.sv        	
 ../../src/EX_Mem_Reg.sv     	
 ../../src/Forwarding_Unit.sv	

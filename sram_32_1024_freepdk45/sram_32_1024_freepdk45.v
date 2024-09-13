@@ -9,7 +9,7 @@ module sram_32_1024_freepdk45(
   );
 
   parameter DATA_WIDTH = 32 ;
-  parameter ADDR_WIDTH = 10 ;
+  parameter ADDR_WIDTH = 20 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
   // FIXME: This delay is arbitrary.
   parameter DELAY = 0;
