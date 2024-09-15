@@ -26,8 +26,8 @@ module DP_TB ();
 	  .EN                   (EN                  ),
 	  .START				(START				 ),
 	  .RSTn                 (RSTn                ),
-	  .OK					(OK					 ),
-	  .TB_Instr				(					 )	  
+	  .OK					(OK					 )
+	//   .TB_Instr				(					 )	  
 	);
 
 	integer instr_file;
@@ -111,7 +111,7 @@ module DP_TB ();
 		end	else begin
 				TB_LOAD_PROGRAM_CTRL = 1'b0;
 				instr_load_finish = 1;
-				$fclose(instr_file);
+				//$fclose(instr_file);
 		end
 
 		if (instr_load_finish == 1) begin
@@ -123,7 +123,7 @@ module DP_TB ();
 			end	else begin
 					TB_LOAD_DATA_CTRL = 1'b0;
 					data_load_finish = 1;
-					$fclose(data_file);
+					//$fclose(data_file);
 					#(TB_CLOCK)
 					RSTn = 1'b1;
 					EN = 1'b1;
