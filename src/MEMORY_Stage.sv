@@ -18,7 +18,7 @@ module MEMORY_Block (
 	input 			TEST_MEM_WE,
 
 	output [31:0] MEM_mem_data,
-	output [31:0] TB_Instr,
+	// output [31:0] TB_Instr,
  	output reg OK	
 );
 
@@ -36,23 +36,23 @@ module MEMORY_Block (
 
 	always @ (*) begin
 		if (TB_LOAD_DATA_CTRL == 1'b1)
-			MEM_web0 = 1'b0;
+			MEM_web0 = 1'b1;
 		else if (TEST_EN == 1'b1)
 			MEM_web0 = TEST_MEM_WE;
 		else
-			MEM_web0 = MEM_in_M.MemRead;
+			MEM_web0 = ~MEM_in_M.MemRead;
 	end
 	
 	
 	always @ (*) begin
 		if (TB_LOAD_DATA_CTRL == 1'b1)
-			MEM_csb0 = 1'b0;
+			MEM_csb0 = 1'b1;
 		else if (TEST_EN == 1'b1)
 			MEM_csb0 = TEST_MEM_CSB;
 		else if (enable_cs == 1'b1)
 			MEM_csb0 = 1'b1;
 		else
-			MEM_csb0 = MEM_in_M.CS;
+			MEM_csb0 = ~MEM_in_M.CS;
 	end
 	
 	always @ (*) begin
@@ -74,13 +74,13 @@ module MEMORY_Block (
 	end
 	
 	//Data memory 	
-	sram_32_1024_freepdk45 data_mem0(
-	.clk0  (CLK),
-	.csb0  (MEM_csb0),
-	.web0  (MEM_web0),
- 	.addr0 (MEM_addr0),
-	.din0  (MEM_din0),
-   	.dout0 (MEM_mem_data)
+	blk_mem_gen_1 data_mem0(
+	.clka  	(CLK),
+	.ena  	(MEM_csb0),
+	.wea  	(MEM_web0),
+ 	.addra 	(MEM_addr0),
+	.dina  	(MEM_din0),
+   	.douta 	(MEM_mem_data)
   	);
 	
 	flip_flop mem_wb_instr (
@@ -92,8 +92,8 @@ module MEMORY_Block (
 	);
 
 always @ (*)
-	if (MEM_csb0 == 1'b0 & 
-		MEM_web0 == 1'b0 & 
+	if (MEM_csb0 == 1'b1 & 
+		MEM_web0 == 1'b1 & 
 		MEM_addr0 == 16'h001c &
 		MEM_din0 == 32'h2)
 		OK <= 1'b1;

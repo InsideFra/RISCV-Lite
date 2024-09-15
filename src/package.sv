@@ -43,7 +43,9 @@ typedef enum reg [31:0] {
 	NOPOP
 }	Instruction_Enum;
 
-typedef enum reg   [3:0] 	{STARTUP, STARTUP0,STARTUP1,STARTUP2,STARTUP3,STARTUP4,IDLE, MEMREAD,RESTART} FSM_MEM_states_reg;
+typedef enum reg   [3:0] {
+	STARTUP, STARTUP0, STARTUP1, STARTUP2, STARTUP3, STARTUP4, 
+	IDLE, MEMREAD, MEMREAD1, MEMREAD2, RESTART} FSM_MEM_states_reg;
 
 typedef enum bit [1:0]	{NOP = 2'b01, IMEM = 2'b10} FSM_Control_Enum;
 

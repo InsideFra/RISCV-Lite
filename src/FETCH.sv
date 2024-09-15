@@ -25,7 +25,7 @@ module FETCH_Block (
 	CACHE_BRANCH 	FETCH_in_BF;
 
 	// Instruction Memory Port MAP
-	reg 			INSTR_MEM_RE; 	// Instruction Memory Read Enable (== 1 read, else write)
+	reg 			INSTR_MEM_WE; 	// Instruction Memory Write Enable (== 0 read, else write)
 	reg [19:0] 		INSTR_MEM_ADDR;
 	reg [31:0] 		INSTR_MEM_DIN;
 	reg [31:0] 		INSTR_MEM_DOUT;
@@ -80,12 +80,11 @@ module FETCH_Block (
 			.q(FETCH_PC_toMUX)
 	);
 
-	assign MEM_WE = INSTR_MEM_RE;
 	assign TEST_MEM_MUX = !TEST_EN;
 	assign TEST_EN_OUT = TEST_EN;
 
 	I_FSM I_FSM0(
-	  .MEM_WE      (MEM_WE     ),
+	  .MEM_WE      (INSTR_MEM_WE),
 	  .clk         (CLK        ),
 	  .rstn        (RSTn       ),
 	  .match       (match      ),
@@ -120,20 +119,20 @@ module FETCH_Block (
 	
 	always @ (*) begin
 		if (TB_LOAD_PROGRAM_CTRL == 1'b1)
-			INSTR_MEM_RE = 1'b0;
+			INSTR_MEM_WE = 1'b1; // Write Memory
 		else if (TEST_MEM_MUX == 1'b1)
-			INSTR_MEM_RE = TEST_MEM_WE;
+			INSTR_MEM_WE = TEST_MEM_WE;
 		else
-			INSTR_MEM_RE = 1'b1;
+			INSTR_MEM_WE = 1'b0; // Read Memory
 	end
 
-	sram_32_1024_freepdk45 instr_mem0(
-   		.clk0  (CLK),
-   		.csb0  (MEM_CSB_OUT),
-   		.web0  (INSTR_MEM_RE),
-   		.addr0 (INSTR_MEM_ADDR),
-   		.din0  (INSTR_MEM_DIN),
-   		.dout0 (INSTR_MEM_DOUT)
+	blk_mem_gen_0 instr_mem0(
+   		.clka  	(CLK),
+   		.ena  	(MEM_CSB_OUT),
+   		.wea  	(INSTR_MEM_WE),
+   		.addra 	(INSTR_MEM_ADDR),
+   		.dina  	(INSTR_MEM_DIN),
+   		.douta 	(INSTR_MEM_DOUT)
   	);
 
 	assign TEST_MEM_DATA = INSTR_MEM_DOUT;

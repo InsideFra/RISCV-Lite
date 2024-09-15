@@ -17,28 +17,26 @@ module FSM(
 		output reg TEST_MEM_WE
 );
 
-		typedef enum reg   [3:0] 	{STARTUP, STARTUP0, STARTUP1, STARTUP2, STARTUP3, STARTUP4, 
-			IDLE, MEMREAD1, MEMREAD2, RESTART} FSM_MEM_states_reg;
 
 		FSM_MEM_states_reg 	current_state;
 		FSM_MEM_states_reg 	next_state;
 
 		reg [3:0] counter;
-		reg [3:0] TEST_counter;
-		reg [3:0] max_cnt;
-
-		assign max_cnt = TEST_counter;
 		reg enable_counter;
 		reg reset_cnt;
-		
+		reg [3:0] max_cnt;
+
+		reg [3:0] TEST_counter;
 		reg EN_TEST_counter;
 		reg RST_TEST_counter;
+		
+		assign max_cnt = 2;
 
 		always @ (posedge clk) begin
-			if (rstn != 1'b0)
-				current_state = next_state;
+			if (!rstn)
+				current_state <= STARTUP;
 			else
-				current_state = STARTUP;
+				current_state <= next_state;
 		end
 		
 		always @ (posedge clk) begin
@@ -118,46 +116,58 @@ module FSM(
 			case (current_state) 
 				STARTUP: begin // Waiting for the ENABLE signal from testbench
 					TEST_EN	 		= 1'b1; // Initialize the TEST Phase
-					TEST_MEM_CSB 	= 1'b0;	// Force CSB Signal to 0
-					TEST_MEM_WE 	= 1'b1; // Select Read Operation
+					
+					TEST_MEM_CSB 	= 1'b1;	// Enable Memory
+					TEST_MEM_WE 	= 1'b0; // Select Read Operation
+					
 					STOP_Pipelinen 	= 1'b0;
 				end
 				STARTUP0: begin // Reading address 0x1
 					TEST_EN	 		= 1'b1; // Initialize the TEST Phase
-					TEST_MEM_CSB 	= 1'b0;	// Force CSB Signal to 0
-					TEST_MEM_WE 	= 1'b1; // Select Read Operation
+					
+					TEST_MEM_CSB 	= 1'b1;	// Enable Memory
+					TEST_MEM_WE 	= 1'b0; // Select Read Operation
+					
 					STOP_Pipelinen 	= 1'b0;
 			
 					EN_TEST_counter = 1'b1;
 				end
 				STARTUP1: begin // Waiting for ~32cc
 					TEST_EN 		= 1'b1; // Initialize the TEST Phase
-					TEST_MEM_CSB 	= 1'b1; 
-					TEST_MEM_WE 	= 1'b1; // Select Read	operation
+					
+					TEST_MEM_CSB 	= 1'b0; // Disable Memory 
+					TEST_MEM_WE 	= 1'b0;
+					
 					STOP_Pipelinen 	= 1'b0;
 					
 					EN_TEST_counter = 1'b1;
 				end
 				STARTUP2: begin // Writing address 0x1
 					TEST_EN 		= 1'b1; // Initialize the TEST Phase
-					TEST_MEM_CSB 	= 1'b0; // Force CSB Signal to 0
-					TEST_MEM_WE 	= 1'b0; // Select Write operation
+					
+					TEST_MEM_CSB 	= 1'b1; // Enable Memory
+					TEST_MEM_WE 	= 1'b1; // Select Write operation
+					
 					STOP_Pipelinen 	= 1'b0;
 
 					EN_TEST_counter = 1'b0;
 				end
 				STARTUP3: begin // Reading address 0x1
 					TEST_EN 		= 1'b1; // Initialize the TEST Phase
-					TEST_MEM_CSB 	= 1'b0; // Force CSB Signal to 0
-					TEST_MEM_WE 	= 1'b1; // Select Read operation
+					
+					TEST_MEM_CSB 	= 1'b1; // Enable Memory
+					TEST_MEM_WE 	= 1'b0; // Select Read operation
+					
 					STOP_Pipelinen 	= 1'b0;
 
 					EN_TEST_counter = 1'b1;
 				end
 				STARTUP4: begin // Waiting for reading
 					TEST_EN 		= 1'b1; // Initialize the TEST Phase
-					TEST_MEM_CSB 	= 1'b1; // Force CSB Signal to 0
-					TEST_MEM_WE 	= 1'b1; // Select Read operation
+					
+					TEST_MEM_CSB 	= 1'b1; // Enable Memory
+					TEST_MEM_WE 	= 1'b0; // Select Read operation
+					
 					STOP_Pipelinen 	= 1'b0;
 
 					EN_TEST_counter = 1'b1;
@@ -168,17 +178,22 @@ module FSM(
 				MEMREAD1: begin
 					enable_counter 	= 1'b1;
 					reset_cnt 		= 1'b0;
+					
 					STOP_Pipelinen 	= 1'b0;
+					
 					enable_cs 	= 1'b0;
 				end
 				MEMREAD2: begin
 					enable_counter 	= 1'b1;
 					reset_cnt 		= 1'b0;
+					
 					STOP_Pipelinen 	= 1'b0;
+					
 					enable_cs 	= 1'b1; // Force CSB to 1
 				end
 				RESTART: begin
 					enable_cs = 1'b1;
+					
 					reset_cnt 	= 1'b1;
 				end
 			endcase
