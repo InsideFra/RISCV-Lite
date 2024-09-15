@@ -1,17 +1,17 @@
 import my_pkg::*;
 module DataPath (
 	input reg 			TB_LOAD_PROGRAM_CTRL,
-	input reg [19:0] 	TB_LOAD_PROGRAM_ADDR,
+	input reg [9:0] 	TB_LOAD_PROGRAM_ADDR,
 	input reg [31:0]	TB_LOAD_PROGRAM_DATA,
 	input reg 			TB_LOAD_DATA_CTRL,
-	input reg [19:0] 	TB_LOAD_DATA_ADDR,
+	input reg [9:0] 	TB_LOAD_DATA_ADDR,
 	input reg [31:0]	TB_LOAD_DATA_DATA,
 	input reg 			CLK, 	// General Architecture Clock
 	input reg 			EN,		// General Architecture Enable
 	input reg 			START,	// General Architecture Start
 	input reg 			RSTn, 	// General Architecture Reset Signal
-	output reg 			OK,
-	output reg [31:0] 	TB_Instr
+	output reg 			OK
+	// output reg [31:0] 	TB_Instr
 );
 
 //---------------------- General Unit VAR---------------------------------//
@@ -338,7 +338,7 @@ module DataPath (
 	  
 	  // output
 	  .MEM_mem_data      (MEM_mem_data     ),
-	  .TB_Instr          (TB_Instr         ),
+	  //   .TB_Instr          (TB_Instr         ),
 	  .OK				 (OK			   )
 	);
 
