@@ -52,9 +52,9 @@ module EXECUTE_Block (
 	always @(posedge CLK) begin
 		if ( (EN) & (RSTn)) begin
 			if (EX_in_PC_add != 32'h0) begin
-				$display("[ALU 	PC: %h] op1: %h\t\top2: %h\t\tALUOp: %s\t\tResult: %h", EX_in_PC_add, EX_Mux_ALUIN1, EX_Mux_ALUIN2, EX_in_EX.ALUop.name(), EX_ALUResult);
-				$display("[ADD 	PC: %h] op2: %h, Result: %h", EX_in_PC_add, add_uni_op2, EX_PC_jump);
-				$display("[FWD 	PC: %h] FWA: %s, FWB: %s"	, EX_in_PC_add, Forward_o.ForwardA.name(), Forward_o.ForwardB.name());
+				// $display("[ALU 	PC: %h] op1: %h\t\top2: %h\t\tALUOp: %s\t\tResult: %h", EX_in_PC_add, EX_Mux_ALUIN1, EX_Mux_ALUIN2, EX_in_EX.ALUop.name(), EX_ALUResult);
+				// $display("[ADD 	PC: %h] op2: %h, Result: %h", EX_in_PC_add, add_uni_op2, EX_PC_jump);
+				// $display("[FWD 	PC: %h] FWA: %s, FWB: %s"	, EX_in_PC_add, Forward_o.ForwardA.name(), Forward_o.ForwardB.name());
 			end
 		end
 	end
