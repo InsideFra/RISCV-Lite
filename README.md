@@ -1,11 +1,32 @@
 # RISCV-Lite
  A first implementation of a RISC V Processor.
  
- Developed with @andreads21 and @WilliamBaisi
+ Developed with @andreads21 and @WilliamBaisi.
+
+ Currently must be run only using Vivado and soon Project files will be published.
  
  ## Description
  
- The architecture contains an SSRAM for both data and instruction. To get higher performance, we added an INSTRUCTION CACHE, a Branch Prediction Unit and a Forwarding Unit. To handle Branch and Jump instructions, we used an Hazard Control Unit.
+ The architecture contains an SRAM for both data and instruction.
+ The currently used RAM is a Single Port RAM from Vivado IP with the following characteristics:
+ - Data width: 32bit
+ - Data range: 512 rows (9 bit address)
+ - Read Latency: 2 clock cycles
+ - Write Latency: No Latency
+
+ Currently FPGA usage:
+ - Target Board: xc7a12tcpg238
+ - LUT: 2180/8000
+ - FF: 2182/16000
+ - BRAM: 1/20
+ - Clock: 166Mhz (period -> 6ns)
+ - Clock Uncertanty: 0.007 
+ 
+ To get higher performance, we added an INSTRUCTION CACHE, and a Forwarding Unit. 
+ 
+ To handle Branch and Jump instructions, we used an Hazard Control Unit.
+
+ Branch Prediction has been removed but will be reintroduced sooner.
  
  This architecture has been developed to execute a very specific assembly code, with the following instruction being implemented: 
  
@@ -30,10 +51,10 @@
  - [x] **SRAI**: Performs an arithmetic right shift on **RS1** equal to the value stored in the lower 5 bits of **IMM**.
  - [x] **SLLI**: Performs an arithmetic left shift on **RS1** equal to the value stored in the lower 5 bits of **IMM**.
  - [x] **LW**: Loads in the register **RD** from the memory at the address **RS1** + **IMM**.
- - [ ] **ANDI**: Performs a bitwise AND between **RS1** and **IMM** and stores the result in **RD**.
- - [ ] **ORI**: Performs a bitwise OR between **RS1** and **IMM** and stores the result in **RD**.
- - [ ] **SLTI**: Sets **RD** to 1 if **RS1** is less than **IMM**, otherwise sets **RD** to 0.
- - [ ] **SLTIU**: Sets **RD** to 1 if **RS1** is less than **IMM** (unsigned comparison), otherwise sets **RD** to 0.
+ - [x] **ANDI**: Performs a bitwise AND between **RS1** and **IMM** and stores the result in **RD**.
+ - [x] **ORI**: Performs a bitwise OR between **RS1** and **IMM** and stores the result in **RD**.
+ - [x] **SLTI**: Sets **RD** to 1 if **RS1** is less than **IMM**, otherwise sets **RD** to 0.
+ - [x] **SLTIU**: Sets **RD** to 1 if **RS1** is less than **IMM** (unsigned comparison), otherwise sets **RD** to 0.
  - [ ] **JALR**: Jumps to the address **RS1** + **IMM** and stores **PC** + 4 in **RD**.
  
  ### S-Type Instructions
@@ -94,7 +115,10 @@
  - [ ] **amomin.w**: 
  - [ ] **amomax.w**: 
  - [ ] **amominu.w**: 
- - [ ] **amoaxu.w**: 
+ - [ ] **amoaxu.w**:
+
+ # Known Bugs:
+ - Something wrong in the Branch  
  
 
  
@@ -104,6 +128,7 @@
  - Memory Managment Unit
  - Timer
  - User and Supervisor Mode
+ - RAM support
  - L1 Cache (Data and Program)
  - L2 Cache (Data and Program)
  - L3 Cache (Data and Program)
@@ -114,6 +139,9 @@
  - USB (x2 ports)
  - Contex Switching
 
+ # Things to do
+
+ - Synthesis on Artix 7
 
  # Utils
 
