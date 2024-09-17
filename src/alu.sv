@@ -42,7 +42,7 @@ module ALU (input wire [31:0] op1,
 	
 	always_comb begin
 		BIT_Branch = 1'b0;
-		ALUResult = SUB_Result; 
+		ALUResult = 32'h0; 
 		
 		case (ALUControl)
 			ALU_ADD: begin

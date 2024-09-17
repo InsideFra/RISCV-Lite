@@ -30,7 +30,7 @@ module I_FSM(
 		reg EN_TEST_counter;
 		reg RST_TEST_counter;
 		
-		assign max_cnt = 1;
+		assign max_cnt = 2;
 
 		always @ (posedge clk or negedge rstn) begin
 			if (!rstn)

@@ -1,13 +1,20 @@
 .globl _start
 
 .data
-nine: .word 0x9
+.word 0x9
 .word 0xffffffd2
 .word 0x15
 .word 0xfffffffe
 .word 0xe
 .word 0x001a1001
 .word 0xfffffffd
+
+result: .word 0xffffffff
+
+result_andi: .word 1
+result_ori:  .word 1
+result_slti: .word 1
+result_sltiu: .word 1
 
 .text
 _start:
@@ -28,9 +35,11 @@ main:
 	jal	loop_init
 	
 	lw	ra,12(sp)
-	lui	a5,0x10010
-	sw	a0,28(a5) # 1001001c <.text+0x1001001c>
+	
+	la	a5,result
+	sw	a0,0(a5) # 1001001c <.text+0x1001001c>
 	li	a0,0
+	
 	addi	sp,sp,16
 	ret
 
@@ -38,7 +47,7 @@ loop_init:
 	lw	a2,0(a0) # 10010000 <.text+0x10010000>
 	li	a4,1
 	
-	srai	a5,a2,0x1f
+	srai a5,a2,0x1f
 	xor	a2,a5,a2
 	sub	a2,a2,a5
 	
@@ -56,12 +65,12 @@ loop_init:
 	bne	a7, s2, end_loop  
 
 	li 	s2, 0x12
-	srl 	a7, s0, s2
+	srl a7, s0, s2
 	li	s2, 0x1fff
 	bne	a7, s2, end_loop  
 
 	li 	s2, 0x12
-	sra 	a7, s0, s2
+	sra a7, s0, s2
 	li	s2, 0x1fff
 	bne	a7, s2, end_loop 
 	
@@ -83,7 +92,33 @@ loop_init:
 	li 	s2, 0xffffffff
 	sltu 	a7, s0, s2
 	li	s2, 0x1
-	bne	a7, s2, end_loop    
+	bne	a7, s2, end_loop
+	
+    # Initialize registers
+    li s0, 0x0F0F0F0F  # Load immediate value into t0
+    li t1, 0xF0F0F0F0  # Load immediate value into t1
+
+    # Test ANDI instruction
+    andi a7, s0, 0x0F0  # t2 = t0 & 0x0F0
+    la t3, result_andi  # Load address of result_andi into t3
+    sw t0, 0(t3)        # Store result in memory
+    li	s2, 0x00000000
+	bne	a7, s2, end_loop
+
+    # Test ORI instruction
+    ori t2, t1, 0x0F0   # t2 = t1 | 0x0F0
+    la t3, result_ori   # Load address of result_ori into t3
+    sw t2, 0(t3)        # Store result in memory
+
+    # Test SLTI instruction
+    slti t2, t0, 0x100  # t2 = (t0 < 0x100) ? 1 : 0
+    la t3, result_slti  # Load address of result_slti into t3
+    sw t2, 0(t3)        # Store result in memory
+
+    # Test SLTIU instruction
+    sltiu t2, t1, 0x100 # t2 = (t1 < 0x100) ? 1 : 0
+    la t3, result_sltiu # Load address of result_sltiu into t3
+    sw t2, 0(t3)        # Store result in memory
 	
 	bge	a4,a1, end_loop
 	

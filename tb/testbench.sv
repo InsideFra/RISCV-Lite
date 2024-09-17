@@ -1,11 +1,11 @@
 `timescale 1 ns / 1 ps
 module DP_TB ();	
 	reg 		TB_LOAD_PROGRAM_CTRL;
-	reg [19:0]  TB_LOAD_PROGRAM_ADDR;
+	reg [9:0]  	TB_LOAD_PROGRAM_ADDR;
 	reg [31:0] 	TB_LOAD_PROGRAM_DATA;
 	
 	reg 		TB_LOAD_DATA_CTRL;
-	reg [19:0]  TB_LOAD_DATA_ADDR;
+	reg [9:0]  	TB_LOAD_DATA_ADDR;
 	reg [31:0] 	TB_LOAD_DATA_DATA;
 	
 	reg CLK;
@@ -86,13 +86,13 @@ module DP_TB ();
 	integer CLK_Count = 0;	
 	integer CLK_Count1 = 0;	
 
-	integer TB_CLOCK = 0.54;
+	integer TB_CLOCK = 5;
 	
 	always begin
 		if (data_load_finish == 0) begin
 			#TB_CLOCK; CLK = ~CLK;
 		end else begin
-			#0.54; CLK = ~CLK;
+			#TB_CLOCK; CLK = ~CLK;
 			if (OK == 1'b1) begin
 				$display("The total numer of clock rising edges is %d", CLK_Count);
 				$display("The total amount of instruction is 69, ALU: 43, Jump: 3, Branch: 13, Memory: 10");

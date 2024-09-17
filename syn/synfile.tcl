@@ -7,10 +7,10 @@ set power_preserve_rtl_hier_names true
 #uniquify >> ../report/uniquify.rep
 #link >> ../report/link.rep
 
-create_clock -name CLK -period 6 CLK 
+create_clock -name CLK -period 8 CLK 
 # 250Mhz
 #set_dont_touch_network CLK
-set_clock_uncertainty 0.007 [get_clocks CLK]
+set_clock_uncertainty 0.01 [get_clocks CLK]
 #set_input_delay 0.1 -max -clock CLK [remove_from_collection [all_inputs] CLK]
 #set_output_delay 0.1 -max -clock CLK [all_outputs]
 #set OLOAD [load_of NangateOpenCellLibrary/BUF_X4/A]

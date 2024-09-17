@@ -13,7 +13,7 @@ module imm_gen (input reg [31:0] instruction_i,
 
 always@(op_code, func_3, instruction_i) begin
 
-	if(op_code == 5'b01101) begin							//lui
+	if(op_code == 5'b01101) begin						//lui
 		immediate_o = {instruction_i[31:12], 12'b0};
 	end
 	else if(op_code == 5'b00101) begin 	            	//auipc
@@ -25,10 +25,27 @@ always@(op_code, func_3, instruction_i) begin
 	else if(op_code == 5'b00100 && func_3 == 3'b001)begin     //slli
 		immediate_o = {instruction_i[31] ? 27'hFFFFFFF : 27'b0, instruction_i[24:20]};
 	end 
+	
+	// SLTI
+	else if(op_code == 5'b00100 && func_3 == 3'b010)begin
+		immediate_o = {instruction_i[31] ? 20'hFFFFF : 20'b0, instruction_i[31:20]};
+	end
+
+	// SLTIU 
+	else if(op_code == 5'b00100 && func_3 == 3'b011)begin
+		immediate_o = {20'b0, instruction_i[31:20]};
+	end
+	 
 	else if(op_code == 5'b00100 && func_3 == 3'b101) begin 	//srai
 		immediate_o = {instruction_i[31] ? 27'hFFFFFFF : 27'b0, instruction_i[24:20]};
 	end
 	else if(op_code == 5'b00100 && func_3 == 3'b000) begin    //addi
+		immediate_o = {instruction_i[31] ? 20'hFFFFF : 20'b0, instruction_i[31:20]};
+	end 
+	else if(op_code == 5'b00100 && func_3 == 3'b111) begin    //andi
+		immediate_o = {instruction_i[31] ? 20'hFFFFF : 20'b0, instruction_i[31:20]};
+	end 
+	else if(op_code == 5'b00100 && func_3 == 3'b110) begin    //ori
 		immediate_o = {instruction_i[31] ? 20'hFFFFF : 20'b0, instruction_i[31:20]};
 	end 
 	else if(op_code == 5'b00000 && func_3 ==  3'b010) begin	//lw

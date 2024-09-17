@@ -3,7 +3,7 @@ module MEMORY_Block (
 	input CLK, EN, RSTn, START,
 	
 	input 			TB_LOAD_DATA_CTRL,
-	input [19:0]	TB_LOAD_DATA_ADDR,
+	input [9:0]	TB_LOAD_DATA_ADDR,
 	input [31:0] 	TB_LOAD_DATA_DATA,
 
     input [31:0]   	MEM_in_ALU_res,
@@ -25,7 +25,7 @@ module MEMORY_Block (
 //---------------------- Memory Stage VAR---------------------------------//
 	reg MEM_web0;
 	reg MEM_csb0;
-	reg [19:0] MEM_addr0;
+	reg [9:0] MEM_addr0;
 	reg [31:0] MEM_din0;
 	reg [31:0] WB_in_instr;
 	//assign MEM_INSTRUCTION = Instruction_Enum'(MEM_in_instr);
@@ -59,9 +59,9 @@ module MEMORY_Block (
 		if (TB_LOAD_DATA_CTRL == 1'b1)
 			MEM_addr0 = TB_LOAD_DATA_ADDR;
 		else if (TEST_EN == 1'b1)
-			MEM_addr0 = 20'b1;
+			MEM_addr0 = 9'b1;
 		else
-			MEM_addr0 = {4'h0, MEM_in_ALU_res[15:0]};
+			MEM_addr0 = {MEM_in_ALU_res[8:0]};
 	end
 	
 	always @ (*) begin
@@ -91,11 +91,11 @@ module MEMORY_Block (
 		.q(WB_in_instr)
 	);
 
-always @ (*)
+always @ (CLK)
 	if (MEM_csb0 == 1'b1 & 
 		MEM_web0 == 1'b1 & 
-		MEM_addr0 == 16'h001c &
-		MEM_din0 == 32'h2)
+		MEM_addr0 == 9'h038 &
+		MEM_din0 == 32'h000000002)
 		OK <= 1'b1;
 	else 
 		OK <= 1'b0;

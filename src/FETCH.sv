@@ -41,6 +41,7 @@ module FETCH_Block (
 	wire MEM_WE;
 	wire ICACHE_WEn;
 	reg TEST_MEM_MUX;
+	reg _PC_Changed;
 	FSM_Control_Enum FSM_SEL;
 
 	// Cache
@@ -56,16 +57,26 @@ module FETCH_Block (
 	assign FSM_PCSrc = _FSM_PCSrc;
 	
 	always @ (*)
-		if (HAZARD.PCSrc == next_pc)
-			PC_Input = FETCH_PC_toMUX + 4;
-		else if (HAZARD.PCSrc == branch_alu)
-			PC_Input = MEM_in_ALU_res;
-		else if (HAZARD.PCSrc == branch_pc_jump)
-			PC_Input = MEM_in_PC_jump; 
-		else if (HAZARD.PCSrc == Z)
-			PC_Input = 32'bz;
-		else
-			PC_Input = 32'bx;
+		if (HAZARD.PCSrc == next_pc) begin
+			PC_Input <= FETCH_PC_toMUX + 4;
+			_PC_Changed <= 1'b0;
+		end
+		else if (HAZARD.PCSrc == branch_alu) begin
+			PC_Input <= MEM_in_ALU_res;
+			_PC_Changed <= 1'b1;
+		end
+		else if (HAZARD.PCSrc == branch_pc_jump) begin
+			PC_Input <= MEM_in_PC_jump; 
+			_PC_Changed <= 1'b1;
+		end
+		else if (HAZARD.PCSrc == Z) begin
+			PC_Input <= 32'bz;
+			_PC_Changed <= 1'b0;
+		end
+		else begin
+			PC_Input <= 32'bx;
+			_PC_Changed <= 1'b0;
+		end
 	
 
 	always @ (*) begin
@@ -88,7 +99,7 @@ module FETCH_Block (
 	  .clk         (CLK        ),
 	  .rstn        (RSTn       ),
 	  .match       (match      ),
-	  .PC_changed  (1'b0),
+	  .PC_changed  (_PC_Changed),
 	  .TEST_MEM_DATA(TEST_MEM_DATA),
 
 	  .FSM_SEL     (FSM_SEL    ),

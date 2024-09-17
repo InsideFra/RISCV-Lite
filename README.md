@@ -147,12 +147,13 @@
 
  ## HEX to Assembly
  ```sh
- TBD
+ /opt/riscv32/bin/riscv32-unknown-linux-gnu-gcc -c sim/main.s
+ /opt/riscv32/bin/riscv32-unknown-linux-gnu-objdump -d sim/main.o > sim/main_translate.s
  ```
 
  ## Assembly to Hex
  ```sh
- /opt/riscv/bin/riscv32-unknown-linux-gnu-as -o sim/main.o sim/main.s
+ /opt/riscv/bin/riscv32-unknown-linux-gnu-as -v -o sim/main.o sim/main.s
  /opt/riscv/bin/riscv32-unknown-linux-gnu-ld -o sim/main.elf sim/main.o
  /opt/riscv/bin/riscv32-unknown-linux-gnu-objcopy -O binary sim/main.elf sim/main.bin
  hexdump -e '"%08x\n"' sim/main.bin > sim/main.hex
