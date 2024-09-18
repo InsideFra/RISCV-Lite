@@ -14,13 +14,13 @@
  - Read Latency: 2 clock cycles
  - Write Latency: No Latency
 
- Currently FPGA usage:
+ Currently FPGA usage (Implementation):
  - Target Board: xc7a12tcpg238
- - LUT: 2180/8000
- - FF: 2182/16000
+ - LUT: 2505/8000
+ - FF: 2242/16000
  - BRAM: 1/20
  - Clock: 166Mhz (period -> 6ns)
- - Clock Uncertanty: 0.007 
+ - Clock Uncertanty: 0.005 
  
  To get higher performance, we added an INSTRUCTION CACHE, and a Forwarding Unit. 
  
