@@ -132,4 +132,43 @@ typedef struct packed {
 		ForwardB_Control_Enum 	ForwardB;
 } FU_ctrl_o;
 
+/*
+CSRs
+*/
+typedef struct packed {
+	reg [127:0] arch_id;
+} CSR_marchid_struct;
+
+typedef struct packed {
+	reg [127:0] impl;
+} CSR_mimpid_struct;
+
+typedef struct packed {
+	reg [127:0] hart_id;
+} CSR_hart_id_struct;
+
+typedef struct packed {
+	reg SD;
+	reg [7:0] WPRI_1;
+	reg TSR;
+	reg TW;
+	reg TVM;
+	reg MXR;
+	reg SUM;
+	reg MPRV;
+	reg [1:0] XS;
+	reg [1:0] FS;
+	reg [1:0] MMP;
+	reg [1:0] VS;
+	reg SPP;
+	reg MPIE;
+	reg UBE;
+	reg SPIE;
+	reg WPRI_2;
+	reg MIE;
+	reg WPRI_3;
+	reg SIE;
+	reg WPRI_4; 
+} CSR_mstatus_struct;
+
 endpackage
