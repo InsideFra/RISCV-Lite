@@ -8,7 +8,13 @@ module rom (
 
     // Read the hex file into the memory array
     initial begin
-        $readmemh("rom.hex", mem);
+        mem[0] = 32'h00000033;
+        mem[1] = 32'h00000033;
+        mem[2] = 32'h00000033;
+        mem[3] = 32'h00000033;
+        mem[4] = 32'h30200073;
+        mem[5] = 32'h00000033;
+        mem[6] = 32'h00000033;
     end
 
     // Output the data at the given address
