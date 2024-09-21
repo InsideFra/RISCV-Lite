@@ -16,21 +16,24 @@ module DECODE_Block (
 	output [31:0] 	ID_reg_data_2,
 	output [4:0] 	ID_Rs1,
 	output 			ID_sel_mux,
-	output 			ID_Rd_EQ0
+	output 			ID_Rd_EQ0,
+	output DECODE_TRAP_STRUCT TRAP,
+	
+	output MRET_DETECTED
 );
 
 //---------------------- Decode Stage VAR---------------------------------//
-	
+
 	wire 		ID_RegWrite;
 	wire [6:0] 	ID_opcode;
 	WB_ctrl 	ID_WB_c;
 	M_ctrl 		ID_M_c;
 	EX_ctrl 	ID_EX_c;
-	
+
 	reg [4:0] MUX_ID_Rs1;
 	reg [31:0] ID_reg_data_1_BM, ID_reg_data_2_BM; // Before Mux
-	
-	reg [4:0] ID_Rs2;	
+
+	reg [4:0] ID_Rs2;
 	reg [4:0] ID_Rd;
 	reg [3:0] ID_in_ALU_ctrl;
 	//assign DECODE_INSTRUCTION = Instruction_Enum'(ID_in_instr);
@@ -40,13 +43,13 @@ module DECODE_Block (
 	assign ID_Rs2 = ID_in_instr [24:20];
 	assign ID_Rd  = ID_in_instr [11:7];
 	assign ID_in_ALU_ctrl = {ID_in_instr[30], ID_in_instr[14:12]};
-	
+
 	assign MUX_ID_Rs1 = ID_in_instr[6:2] == 5'b01101 ? 5'b0 : ID_in_instr [19:15];
 	assign ID_Rs1 = MUX_ID_Rs1;
 
-	assign ID_reg_data_1 = (ID_Rs1 == 5'b00000) ? 32'h00000000 : 
+	assign ID_reg_data_1 = (ID_Rs1 == 5'b00000) ? 32'h00000000 :
 						((ID_Rs1 == WB_in_Rd) ? WB_Mux_Mux_out : ID_reg_data_1_BM);
-	
+
 	assign ID_reg_data_2 = (ID_Rs2 == 5'b00000) ? 32'h00000000 :
 						((ID_Rs2 == WB_in_Rd) ? WB_Mux_Mux_out : ID_reg_data_2_BM);
 
@@ -55,17 +58,17 @@ module DECODE_Block (
 	assign ID_RegWrite = WB_in_WB.RegWrite;
 	register_file ID_RF (
            .rs1(ID_Rs1),
-           .rs2(ID_Rs2), 
-           .rd(WB_in_Rd),  
-           .write_data(WB_Mux_Mux_out), 
+           .rs2(ID_Rs2),
+           .rd(WB_in_Rd),
+           .write_data(WB_Mux_Mux_out),
            .RegWrite(WB_in_WB.RegWrite),
            .RSTn(RSTn),
            .clk(CLK),
 		   .en(EN & START),
            .read_data1(ID_reg_data_1_BM),
            .read_data2(ID_reg_data_2_BM)
-	);					
-	
+	);
+
 	always @(posedge CLK) begin
 		if ( (EN) & (START)) begin
 			if (WB_in_WB.RegWrite == 1'b1) begin
@@ -73,8 +76,15 @@ module DECODE_Block (
 			end
 		end
 	end
-	
-	control ID_CTRL (.instruction(ID_in_instr), .WB(ID_WB_c), .M(ID_M_c), .EX(ID_EX_c));
+
+	control ID_CTRL (
+	   .instruction(ID_in_instr), 
+	   .WB(ID_WB_c), 
+	   .M(ID_M_c), 
+	   .EX(ID_EX_c), 
+	   .ILLEGAL_INSTR(TRAP.ILLEGAL_INSTR),
+	   .MRET_DETECTED(MRET_DETECTED)
+	);
 
 	imm_gen ID_IG (.instruction_i(ID_in_instr), .immediate_o(ID_imm));
 
@@ -83,5 +93,5 @@ module DECODE_Block (
 	assign ID_in_EX = ID_EX_c;
 
 	assign ID_sel_mux = HAZARD_BP_o.Ctrl_Mux_DE;
-	
+
 endmodule

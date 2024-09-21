@@ -1,18 +1,17 @@
 import my_pkg::*;
 module I_FSM(
-		input MEM_WE,
 		input clk, rstn,
-		input match,
+		input MEM_WE, // If this is 0 during IDLE, next state is MEMREAD
+		// input match, // currently not used
 
 		input PC_changed,
 
 		input reg [31:0] TEST_MEM_DATA,
 
 		output FSM_Control_Enum FSM_SEL,
-		
-		output reg ICACHE_WEn,
+
 		output reg MEM_CSB_OUT,
-		output reg PCSrc,
+		output reg I_FSM_STALL_FETCH,
 
 		output reg TEST_EN,
 		output reg TEST_MEM_WE
@@ -29,7 +28,7 @@ module I_FSM(
 		reg [3:0] TEST_counter;
 		reg EN_TEST_counter;
 		reg RST_TEST_counter;
-		
+
 		assign max_cnt = 2;
 
 		always @ (posedge clk or negedge rstn) begin
@@ -51,7 +50,7 @@ module I_FSM(
 					counter <= counter;
 			end
 		end
-		
+
 		always @ (posedge clk or negedge rstn) begin
 			if (!rstn)
 				TEST_counter <= 4'b0000;
@@ -64,10 +63,10 @@ module I_FSM(
 					TEST_counter <= TEST_counter;
 			end
 		end
-		
+
 		always @ (counter, TEST_counter, TEST_MEM_DATA, MEM_WE, PC_changed) begin
 			next_state = current_state;
-			case (current_state) 
+			case (current_state)
 				STARTUP: begin // Wait for reset
 					next_state = STARTUP0;
 				end
@@ -109,52 +108,51 @@ module I_FSM(
 				end
 			endcase
 		end
-		
+
 		always @ (current_state) begin
 			enable_counter  = 1'b0;
 			reset_cnt 		= 1'b0;
-			
+
 			EN_TEST_counter 	= 1'b0;
 			RST_TEST_counter 	= 1'b0;
-			
+
 			TEST_EN 		= 1'b1;
 			MEM_CSB_OUT 	= 1'b0;
 			TEST_MEM_WE 	= 1'b0;
-			
-			PCSrc 		= 1'b0;
-			ICACHE_WEn 	= 1'b1;
+
+			I_FSM_STALL_FETCH 		= 1'b0;
 			FSM_SEL 	= NOP;
 
-			case (current_state) 
+			case (current_state)
 				STARTUP: begin // Wait for Reset
 					MEM_CSB_OUT		= 1'b1;
-					
+
 					reset_cnt = 1'b1;
 					RST_TEST_counter = 1'b1;
 				end
 				STARTUP0: begin // Read
 					TEST_EN 		= 1'b0;
-					
+
 					MEM_CSB_OUT		= 1'b1;
 					TEST_MEM_WE 	= 1'b0;
-					
+
 					EN_TEST_counter = 1'b1;
-					
+
 					reset_cnt = 1'b1;
 				end
 				STARTUP1: begin // Wait
 					TEST_EN 		= 1'b0;
-					
+
 					MEM_CSB_OUT		= 1'b0;
 					TEST_MEM_WE 	= 1'b0;
-					
+
 					EN_TEST_counter = 1'b1;
-					
+
 					reset_cnt = 1'b1;
 				end
 				STARTUP2: begin // Write
 					TEST_EN 		= 1'b0;
-					
+
 					MEM_CSB_OUT		= 1'b1;
 					TEST_MEM_WE 	= 1'b1;
 
@@ -162,47 +160,44 @@ module I_FSM(
 				end
 				STARTUP3: begin // Read
 					TEST_EN 		= 1'b0;
-					
+
 					TEST_MEM_WE 	= 1'b0;
 					MEM_CSB_OUT		= 1'b1;
-					
+
 					EN_TEST_counter = 1'b1;
-					
+
 					reset_cnt = 1'b1;
 				end
 				STARTUP4: begin // Wait
 					TEST_EN 		= 1'b0;
-					
+
 					MEM_CSB_OUT 	= 1'b1;
 					TEST_MEM_WE 	= 1'b0;
-					
+
 					EN_TEST_counter = 1'b1;
-					
+
 					reset_cnt = 1'b1;
 				end
 				IDLE: begin // IDLE
-					PCSrc = 1'b0;
-					ICACHE_WEn = 1'b1;
+					I_FSM_STALL_FETCH = 1'b0;
 					FSM_SEL = NOP;
-					
+
 					enable_counter = 1'b0;
 					reset_cnt = 1'b1;
 				end
 				MEMREAD: begin
 					MEM_CSB_OUT = 1'b1;
-					PCSrc = 1'b0;
-					ICACHE_WEn = 1'b1;
+					I_FSM_STALL_FETCH = 1'b0;
 					FSM_SEL = NOP;
-					
+
 					enable_counter = 1'b1;
 					reset_cnt = 1'b0;
 				end
 				RESTART: begin
 					MEM_CSB_OUT = 1'b1;
-					PCSrc = 1'b1;
-					ICACHE_WEn = 1'b0;
-					FSM_SEL = IMEM;	
-					
+					I_FSM_STALL_FETCH = 1'b1;
+					FSM_SEL = IMEM;
+
 					enable_counter = 1'b0;
 					reset_cnt = 1'b1;
 				end
