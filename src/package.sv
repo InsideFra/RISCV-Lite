@@ -25,35 +25,38 @@ typedef enum bit [2:0] 	{NOFWA=3'b001, FWA_MEMD=3'b010, FWA_ALURSLT=3'b100} Forw
 typedef enum bit [2:0] 	{NOFWB=3'b001, FWB_MEMD=3'b010, FWB_ALURSLT=3'b100} ForwardB_Control_Enum;
 
 typedef enum reg [31:0] {
-	LUIOP, 
-	AUIPCOP, 
-	SWOP, 
-	ADDOP, 
+	LUIOP,
+	AUIPCOP,
+	SWOP,
+	ADDOP,
 	XOROP,
-	ANDOP, 
-	SUBOP, 
-	SLLIOP, 
-	SRAIOP, 
-	ADDIOP, 
-	LWOP, 
-	JALROP, 
-	JALOP, 
-	BNEOP, 
-	BLEOP, 
+	ANDOP,
+	SUBOP,
+	SLLIOP,
+	SRAIOP,
+	ADDIOP,
+	LWOP,
+	JALROP,
+	JALOP,
+	BNEOP,
+	BLEOP,
 	NOPOP
 }	Instruction_Enum;
 
 typedef enum reg   [3:0] {
-	STARTUP, STARTUP0, STARTUP1, STARTUP2, STARTUP3, STARTUP4, 
+	STARTUP, STARTUP0, STARTUP1, STARTUP2, STARTUP3, STARTUP4,
 	IDLE, MEMREAD, MEMREAD1, MEMREAD2, RESTART} FSM_MEM_states_reg;
 
 typedef enum bit [1:0]	{NOP = 2'b01, IMEM = 2'b10} FSM_Control_Enum;
 
 typedef enum bit [2:0] {
-	next_pc = 3'b000,
-	Z		= 3'b010,
-	branch_alu  = 3'b011,
-	branch_pc_jump = 3'b100
+	next_pc,
+	Z,
+	branch_alu,
+	branch_pc_jump,
+	trap_illegal,
+	xepc
+
 } PCSrc_Enum;
 
 typedef struct packed {
@@ -85,18 +88,23 @@ typedef struct packed {
 typedef struct packed {
 	reg Pcsrc;
 	reg [4:0] rs1;
-	reg [4:0] rs2;	
+	reg [4:0] rs2;
 	reg [4:0] rd;
 	reg MemRead;
-	reg MEM_in_M_jump; 
+	reg MEM_in_M_jump;
 	reg MEM_in_M_branch;
 	reg MEM_in_bit_branch;
 	reg MEM_in_P;
 	reg MEM_in_M_AddtoPC;
-	reg MEM_in_ALU_res; 
-	reg MEM_in_PC_jump;  
+	reg MEM_in_ALU_res;
+	reg MEM_in_PC_jump;
 	reg EX_in_PC_add;
-	reg FSM_PCSrc;
+	reg I_FSM_STALL_FETCH;
+
+	reg DECODE_TRAP;
+
+	reg EXECUTE_MRET;
+	reg EXECUTE_SRET;
 
 } HAZARD_ctrl_i;
 
@@ -114,6 +122,14 @@ typedef struct packed {
 	reg [31:0] TA;
 	reg T;
 } CACHE_BRANCH;
+
+typedef struct packed {
+	reg ILLEGAL_INSTR;
+} DECODE_TRAP_STRUCT;
+
+typedef struct packed {
+	reg DECODE_TRAP;
+} TRAP_STRUCT;
 
 typedef struct packed {
 		reg [4:0] 	Mem_rd;
