@@ -18,11 +18,21 @@ module TRAP_Block (
 
 reg [31:0] xreg;
 
+always @(posedge CLK) begin
+    if (RSTn == 1'b0)
+        xreg = 32'h0;
+    else begin
+        if (TRAP_DECODE_i.ILLEGAL_INSTR == 1'b1)
+            xreg = DECODE_INSTR;
+        else
+            xreg = xreg;
+    end
+end
+
 always @(TRAP_DECODE_i) begin
     if (EN == 1'b1) begin
         if (TRAP_DECODE_i.ILLEGAL_INSTR == 1'b1) begin
             TRAP_o.DECODE_TRAP = 1'b1;
-            xreg = DECODE_INSTR;
         end
         else begin
             TRAP_o.DECODE_TRAP = 1'b0;
