@@ -30,21 +30,21 @@ module DataPath (
 //---------------------- Hazard Control Unit VAR END -----------------//
 
 //---------------------- Forward Control Unit VAR---------------------//
-	
+
 	FU_ctrl_i Forward_i;
 	FU_ctrl_o Forward_o;
-  
+
 //---------------------- Forward Control Unit VAR END ----------------//
 
 //---------------------- WB Stage VAR---------------------------------//
 
 	WB_ctrl		WB_in_WB;
 	reg [31:0] 	WB_in_PC_link;
-	reg [31:0] 	WB_in_ALU_res; 
+	reg [31:0] 	WB_in_ALU_res;
 	reg [4:0] 	WB_in_Rd;
-	wire [31:0] WB_Mux_out; 
+	wire [31:0] WB_Mux_out;
 	wire [31:0] WB_Mux_Mux_out;
-	
+
 	reg [31:0] WB_in_instr;
 	//assign WB_INSTRUCTION = Instruction_Enum'(WB_in_instr);
 
@@ -64,13 +64,17 @@ module DataPath (
 	wire [31:0] IF_PC_ADD;
 	wire [31:0] IF_INSTR;
 	reg		IF_FETCH_P;
-	assign IF_FETCH_P = 1'b0; 
+	assign IF_FETCH_P = 1'b0;
 
 	wire [31:0] MEM_in_PC_jump;
 	wire [31:0]	MEM_in_ALU_res;
 
 	wire TEST_FE_EN;
-	wire FSM_PCSrc;
+	wire I_FSM_STALL_FETCH;
+
+	wire [31:0] INSTR_MEM_DOUT;
+	wire [31:0] xepc;
+	FSM_Control_Enum FSM_SEL;
 
 	FETCH_Block FE0 (
 		// input
@@ -80,19 +84,37 @@ module DataPath (
 		.START(START),
 
 		.HAZARD	(HAZARD_o),
-		.TB_LOAD_PROGRAM_CTRL(TB_LOAD_PROGRAM_CTRL),
-		.TB_LOAD_PROGRAM_ADDR(TB_LOAD_PROGRAM_ADDR),
-		.TB_LOAD_PROGRAM_DATA(TB_LOAD_PROGRAM_DATA),
+		.xepc_value(xepc),
 
 		.MEM_in_PC_jump(MEM_in_PC_jump),
 		.MEM_in_ALU_res(MEM_in_ALU_res),
-		
+
+		.INSTR_MEM_DOUT(INSTR_MEM_DOUT),
+		.FSM_SEL(FSM_SEL),
+		.TEST_EN(TEST_FE_EN),
+
 		// output
 		.PC_link(IF_PC_LINK),
 		.PC_add(IF_PC_ADD),
 		.instr(IF_INSTR),
-		.TEST_EN_OUT(TEST_FE_EN),
-		.FSM_PCSrc(FSM_PCSrc)
+		.PC_Changed(PC_Changed)
+	);
+
+	MMU_Block MMU0 (
+    .EN(EN & enable_general),
+	.CLK(CLK),
+	.RSTn(RSTn),
+    .PC(IF_PC_ADD),
+    .TB_LOAD_PROGRAM_CTRL(TB_LOAD_PROGRAM_CTRL),
+	.TB_LOAD_PROGRAM_DATA(TB_LOAD_PROGRAM_DATA),
+	.TB_LOAD_PROGRAM_ADDR(TB_LOAD_PROGRAM_ADDR),
+    .PC_Changed(PC_Changed),
+
+	.data(INSTR_MEM_DOUT),
+    .busy_reading(),
+    .TEST_EN_OUT(TEST_FE_EN),
+    .FSM_SEL(FSM_SEL),
+    .I_FSM_STALL_FETCH(I_FSM_STALL_FETCH)
 	);
 
 // END
@@ -115,7 +137,7 @@ module DataPath (
 	  .clk         (CLK),
 	  .rstn        (HAZARD_o.En_IFID & RSTn),
 	  .en          (EN & START & enable_general & TEST_FE_EN),
-	  
+
 	  .out_PC_link (ID_in_PC_link),
 	  .out_PC_add  (ID_in_PC_add),
 	  .out_instr   (ID_in_instr),
@@ -125,11 +147,11 @@ module DataPath (
 // END
 
 //---------------------- Decode Stage---------------------------------//
-	
+
 	WB_ctrl	ID_in_WB;
 	M_ctrl 	ID_in_M;
 	EX_ctrl	ID_in_EX;
-	
+
 	wire [31:0] 	ID_imm;
 	wire [31:0] 	ID_reg_data_1;
 	wire [31:0] 	ID_reg_data_2;
@@ -139,7 +161,9 @@ module DataPath (
 	wire [4:0] 		ID_Rd;
 	wire 			ID_Rd_EQ0;
 	wire 			ID_sel_mux;
-	
+
+	wire DECODE_TRAP_STRUCT TRAP_DECODE_i;
+
 	assign ID_Rs2 = ID_in_instr [24:20];
 	assign ID_Rd  = ID_in_instr [11:7];
 	assign ID_in_ALU_ctrl = {ID_in_instr[30], ID_in_instr[14:12]};
@@ -154,7 +178,7 @@ module DataPath (
 	  .WB_Mux_Mux_out (WB_Mux_Mux_out),
 	  .HAZARD_BP_o 	  (HAZARD_o   ),
 	  .WB_in_WB		  (WB_in_WB      ),
-	  
+
 	  .ID_in_WB       (ID_in_WB      ),
 	  .ID_in_M        (ID_in_M       ),
 	  .ID_in_EX       (ID_in_EX      ),
@@ -163,7 +187,10 @@ module DataPath (
 	  .ID_reg_data_2  (ID_reg_data_2 ),
 	  .ID_Rs1         (ID_Rs1        ),
 	  .ID_sel_mux	  (ID_sel_mux	 ),
-	  .ID_Rd_EQ0      (ID_Rd_EQ0	 )
+	  .ID_Rd_EQ0      (ID_Rd_EQ0	 ),
+
+	  .TRAP			  (TRAP_DECODE_i),
+	  .MRET_DETECTED  (MRET_DETECTED)
 	);
 
 //ID_EX Reg//
@@ -182,18 +209,18 @@ module DataPath (
 	reg			EX_in_Rd_EQ0;
     reg      	EX_in_P;
     reg  [4:0] 	EX_in_Rs1;
-    reg  [4:0] 	EX_in_Rs2;        
+    reg  [4:0] 	EX_in_Rs2;
 
-	
+
 	ID_EX_Reg ID_EX_M_r (
-		.in_WB(ID_in_WB),        	
+		.in_WB(ID_in_WB),
         .in_M(ID_in_M),
         .in_EX(ID_in_EX),
         .in_PC_link(ID_in_PC_link),
-        .in_PC_add(ID_in_PC_add), 
+        .in_PC_add(ID_in_PC_add),
         .in_imm(ID_imm),
 		.in_reg_data_1(ID_reg_data_1),
-		.in_reg_data_2(ID_reg_data_2),	
+		.in_reg_data_2(ID_reg_data_2),
         .in_ALU_ctrl(ID_in_ALU_ctrl),
         .in_Rd(ID_Rd),
 		.in_Rd_EQ0(ID_Rd_EQ0),
@@ -201,37 +228,37 @@ module DataPath (
         .in_Rs2(ID_Rs2),
     	.in_P  (ID_in_P),
 		.in_instr(ID_in_instr),
-        
+
 		.clk(CLK),
         .rstn(RSTn & ID_sel_mux),
         .en(EN & START & enable_general & TEST_FE_EN),
-        
+
 		// output
 		.out_WB		(EX_in_WB),
         .out_M		(EX_in_M),
         .out_EX		(EX_in_EX),
         .out_PC_link(EX_in_PC_link),
-        .out_PC_add	(EX_in_PC_add), 
+        .out_PC_add	(EX_in_PC_add),
         .out_imm	(EX_in_imm),
-		.out_reg_data_1	(EX_in_reg_data_1),	
-		.out_reg_data_2	(EX_in_reg_data_2),	
+		.out_reg_data_1	(EX_in_reg_data_1),
+		.out_reg_data_2	(EX_in_reg_data_2),
         .out_ALU_ctrl	(EX_in_imm_funct),
         .out_Rd		(EX_in_Rd),
 		.out_Rd_EQ0	(EX_in_Rd_EQ0),
         .out_Rs1	(EX_in_Rs1),
-        .out_Rs2	(EX_in_Rs2),       
+        .out_Rs2	(EX_in_Rs2),
     	.out_P  	(EX_in_P),
 	  	.out_instr	(EX_in_instr   ) // this wire is for test purpose
-	); 
-	
+	);
+
 // END
 
 //---------------------- Execution Stage---------------------------------//
 
 	wire [31:0] EX_PC_jump;
 	wire [31:0] EX_ALUResult;
-	wire 		EX_bit_branch;	
-	
+	wire 		EX_bit_branch;
+
 	wire [31:0] MEM_in_instr;
 
 	EXECUTE_Block EX0(
@@ -250,7 +277,7 @@ module DataPath (
 	  .WB_Mux_Mux_out   (WB_Mux_Mux_out  ),
 	  .MEM_in_instr     (MEM_in_instr    ),
 	  .MEM_in_ALU_res   (MEM_in_ALU_res  ),
-	  
+
 	  // output
 	  .EX_PC_jump       (EX_PC_jump      ),
 	  .EX_ALUResult     (EX_ALUResult    ),
@@ -283,7 +310,7 @@ module DataPath (
     	.clk            (CLK),
     	.rstn           (RSTn & HAZARD_o.Ctrl_Mux_EX),
 		.en 	        (EN & START & enable_general & TEST_FE_EN),
-		
+
 		//output
     	.out_WB         (MEM_in_WB),
     	.out_M          (MEM_in_M),
@@ -296,8 +323,8 @@ module DataPath (
     	.out_Rd         (MEM_in_Rd),
 		.out_Rd_EQ0		(MEM_in_Rd_EQ0),
     	.out_P          (MEM_in_P)
-	); 
-	
+	);
+
 	always @(posedge CLK) begin
 		if ( (EN & START & enable_general & TEST_FE_EN) & (RSTn & HAZARD_o.Ctrl_Mux_EX)) begin
 			if (EX_in_instr != 32'h0 & EX_in_instr != 32'h6f & EX_in_instr != 32'h8067) begin
@@ -305,7 +332,7 @@ module DataPath (
 			end
 		end
 	end
-	
+
 
 // END
 
@@ -314,7 +341,7 @@ module DataPath (
 	wire [31:0] WB_in_mem_data;
  	wire [31:0] MEM_mem_data;
  	wire  		WB_in_Rd_EQ0;
-	
+
 	wire enable_cs;
 
 	MEMORY_Block ME0(
@@ -325,17 +352,17 @@ module DataPath (
 	  .TB_LOAD_DATA_CTRL (TB_LOAD_DATA_CTRL),
 	  .TB_LOAD_DATA_ADDR (TB_LOAD_DATA_ADDR),
 	  .TB_LOAD_DATA_DATA (TB_LOAD_DATA_DATA),
-	  
+
 	  .MEM_in_ALU_res    (MEM_in_ALU_res   ),
 	  .MEM_in_instr      (MEM_in_instr     ),
 	  .MEM_in_M          (MEM_in_M         ),
 	  .enable_cs		 (enable_cs        ),
 	  .MEM_in_reg_data_2 (MEM_in_reg_data_2),
-	
+
 	  .TEST_EN			 (TEST_EN		   ),
 	  .TEST_MEM_CSB		 (TEST_MEM_CSB	   ),
 	  .TEST_MEM_WE		 (TEST_MEM_WE	   ),
-	  
+
 	  // output
 	  .MEM_mem_data      (MEM_mem_data     ),
 	  //   .TB_Instr          (TB_Instr         ),
@@ -361,14 +388,35 @@ module DataPath (
 	.out_mem_data(WB_in_mem_data),
 	.out_Rd(WB_in_Rd),
 	.out_Rd_EQ0(WB_in_Rd_EQ0)
-	); 
+	);
 
 //END
 
+wire TRAP_STRUCT TRAP_o;
+
+//---------------------- TRAP --------------------------------//
+
+	TRAP_Block TRAP0 (
+		.CLK(CLK),
+		.EN(enable_general & TEST_FE_EN),
+		.RSTn(RSTn),
+		.TRAP_DECODE_i(TRAP_DECODE_i),
+		.DECODE_INSTR(ID_in_PC_add),
+		.MRET_DETECTED(MRET_DETECTED),
+
+		.TRAP_o(TRAP_o),
+		.xreg_value(xepc),
+		.EXECUTE_MRET(EXECUTE_MRET)
+	);
+
+//---------------------- END TRAP --------------------------------//
+
+
+
 //---------------------- Write Back stage --------------------------------//
 	//first mux select MemtoReg
-	assign WB_Mux_out = WB_in_WB.MemtoReg ? WB_in_mem_data : WB_in_ALU_res; 
-	
+	assign WB_Mux_out = WB_in_WB.MemtoReg ? WB_in_mem_data : WB_in_ALU_res;
+
 	//second mux select Pctoreg
 	assign WB_Mux_Mux_out = WB_in_WB.PCtoReg ? WB_in_PC_link : WB_Mux_out;
 
@@ -384,7 +432,7 @@ module DataPath (
 	assign Forward_i.WB_RegWrite 	= WB_in_WB.RegWrite;
 	assign Forward_i.MEM_in_Rd_EQ0	= MEM_in_Rd_EQ0;
 	assign Forward_i.WB_in_Rd_EQ0	= WB_in_Rd_EQ0;
-		   	
+
 	FU_Unit fu_unit0(
 	  .FU_i (Forward_i),
 	  .FU_o (Forward_o)
@@ -403,12 +451,15 @@ module DataPath (
 	assign HAZARD_i.MEM_in_bit_branch = MEM_in_bit_branch;
 	assign HAZARD_i.MEM_in_P = MEM_in_P;
 	assign HAZARD_i.EX_in_PC_add = EX_in_PC_add;
-	
+
 	assign HAZARD_i.MEM_in_M_AddtoPC = MEM_in_M.AddtoPC;
 	assign HAZARD_i.MEM_in_ALU_res = MEM_in_ALU_res;
 	assign HAZARD_i.MEM_in_PC_jump = MEM_in_PC_jump;
-	assign HAZARD_i.FSM_PCSrc = FSM_PCSrc;
-	
+	assign HAZARD_i.I_FSM_STALL_FETCH = I_FSM_STALL_FETCH;
+
+	assign HAZARD_i.DECODE_TRAP = TRAP_o.DECODE_TRAP;
+	assign HAZARD_i.EXECUTE_MRET = EXECUTE_MRET;
+
 	Hazard_Ctrl_Unit HZRD_0(
 	 .HAZARD_i (HAZARD_i),
 	 .HAZARD_o (HAZARD_o)
@@ -420,7 +471,7 @@ module DataPath (
 	FSM fsm0(
 	  .chipselect     (MEM_in_M.CS),
 	  .write_enable   (MEM_in_M.MemRead),
-	  
+
 	  .chipselect_EX  (EX_in_M.CS),
 	  .write_enable_EX(EX_in_M.MemRead),
 	  .clk            (CLK),
@@ -429,7 +480,7 @@ module DataPath (
 
 	  .enable_cs	  (enable_cs),
 	  .STOP_Pipelinen (enable_general),
-	  
+
 	  .TEST_EN		  (TEST_EN),
 	  .TEST_MEM_CSB	  (TEST_MEM_CSB),
 	  .TEST_MEM_WE    (TEST_MEM_WE)
