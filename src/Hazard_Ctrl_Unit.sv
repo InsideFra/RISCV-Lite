@@ -56,16 +56,16 @@ module Hazard_Ctrl_Unit (
 			end else begin
 				Ctrl_Mux_EX <= 1;	// next cycle next instruction in memory
 				Ctrl_Mux_DE <= 1;	// next cycle next instruction in execute
-				En_IFID <= HAZARD_i.I_FSM_STALL_FETCH;	// next cycle next instruction in decode
-				En_PC 	<= HAZARD_i.I_FSM_STALL_FETCH;  // next cycle pc+4 instruction in fetch
+				En_IFID <= ~HAZARD_i.I_FSM_STALL_FETCH;	// next cycle next instruction in decode
+				En_PC 	<= ~HAZARD_i.I_FSM_STALL_FETCH;  // next cycle pc+4 instruction in fetch
 				PCSrc <= next_pc;
 			end
 		end
 		else begin
 				Ctrl_Mux_EX <= 1;	// next cycle next instruction in memory
 				Ctrl_Mux_DE <= 1;	// next cycle next instruction in execute
-				En_IFID <= HAZARD_i.I_FSM_STALL_FETCH; 	// next cycle next instruction in decode
-				En_PC 	<= HAZARD_i.I_FSM_STALL_FETCH;	// next cycle pc+4 instruction in fetch
+				En_IFID <= ~HAZARD_i.I_FSM_STALL_FETCH; 	// next cycle next instruction in decode
+				En_PC 	<= ~HAZARD_i.I_FSM_STALL_FETCH;	// next cycle pc+4 instruction in fetch
 				PCSrc <= next_pc;
 		end
 	end

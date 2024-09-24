@@ -9,9 +9,9 @@ module FETCH_Block (
 		input 	[31:0] 	MEM_in_PC_jump,
 		input 	[31:0] 	MEM_in_ALU_res,
 
-		input FSM_Control_Enum FSM_SEL,
+		input FSM_SEL,
 		input TEST_EN,
-		
+
 		input [31:0] xepc_value,
 
 		output 	[31:0] 	PC_link,
@@ -23,7 +23,7 @@ module FETCH_Block (
 //---------------------- Fetch Stage VAR---------------------------------//
 	reg [31:0]		PC_Input;
 	wire [31:0] 	FETCH_PC_toMUX; // From PC to MUX
-	
+
 	reg enable_PC;
 
 	reg _PC_Changed;
@@ -100,9 +100,9 @@ module FETCH_Block (
 			instr = 32'b0;
 //		else if (match == 1'b1)
 //			instr = data_cache_out;
-		else if (FSM_SEL == NOP)
+		else if (FSM_SEL == 1'b1)
 			instr = 32'b0;
-		else if (FSM_SEL == IMEM)
+		else if (FSM_SEL == 1'b0)
 			instr = INSTR_MEM_DOUT;
 		else
 			instr = 32'b0;

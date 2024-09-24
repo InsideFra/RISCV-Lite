@@ -90,7 +90,7 @@ module DataPath (
 		.MEM_in_ALU_res(MEM_in_ALU_res),
 
 		.INSTR_MEM_DOUT(INSTR_MEM_DOUT),
-		.FSM_SEL(FSM_SEL),
+		.FSM_SEL(I_FSM_STALL_FETCH),
 		.TEST_EN(TEST_FE_EN),
 
 		// output
@@ -101,7 +101,7 @@ module DataPath (
 	);
 
 	MMU_Block MMU0 (
-    .EN(EN & enable_general),
+    .EN(EN),
 	.CLK(CLK),
 	.RSTn(RSTn),
     .PC(IF_PC_ADD),
@@ -113,7 +113,6 @@ module DataPath (
 	.data(INSTR_MEM_DOUT),
     .busy_reading(),
     .TEST_EN_OUT(TEST_FE_EN),
-    .FSM_SEL(FSM_SEL),
     .I_FSM_STALL_FETCH(I_FSM_STALL_FETCH)
 	);
 

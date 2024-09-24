@@ -2,13 +2,12 @@ import my_pkg::*;
 module I_FSM(
 		input clk, rstn,
 		input MEM_WE, // If this is 0 during IDLE, next state is MEMREAD
+		input I_RAM_SELECTED,
 		// input match, // currently not used
 
 		input PC_changed,
 
 		input reg [31:0] TEST_MEM_DATA,
-
-		output FSM_Control_Enum FSM_SEL,
 
 		output reg MEM_CSB_OUT,
 		output reg I_FSM_STALL_FETCH,
@@ -29,7 +28,7 @@ module I_FSM(
 		reg EN_TEST_counter;
 		reg RST_TEST_counter;
 
-		assign max_cnt = 2;
+		assign max_cnt = 1;
 
 		always @ (posedge clk or negedge rstn) begin
 			if (!rstn)
@@ -90,7 +89,7 @@ module I_FSM(
 				IDLE: begin
 					if (max_cnt == 4'hF)
 						next_state = RESTART;
-					else if (MEM_WE == 1'b0)
+					else if (MEM_WE == 1'b0 & I_RAM_SELECTED == 1'b1)
 						next_state = MEMREAD;
 					else
 						next_state = IDLE;
@@ -98,7 +97,7 @@ module I_FSM(
 				MEMREAD: begin
 					if (PC_changed == 1'b1)
 						next_state = IDLE;
-					else if (counter == max_cnt)
+					else if ((max_cnt == 0) | (counter == max_cnt))
 						next_state = RESTART;
 					else
 						next_state = MEMREAD;
@@ -120,8 +119,7 @@ module I_FSM(
 			MEM_CSB_OUT 	= 1'b0;
 			TEST_MEM_WE 	= 1'b0;
 
-			I_FSM_STALL_FETCH 		= 1'b0;
-			FSM_SEL 	= NOP;
+			I_FSM_STALL_FETCH 		= 1'b1;
 
 			case (current_state)
 				STARTUP: begin // Wait for Reset
@@ -179,24 +177,21 @@ module I_FSM(
 					reset_cnt = 1'b1;
 				end
 				IDLE: begin // IDLE
-					I_FSM_STALL_FETCH = 1'b0;
-					FSM_SEL = NOP;
+					I_FSM_STALL_FETCH = 1'b1;
 
 					enable_counter = 1'b0;
 					reset_cnt = 1'b1;
 				end
 				MEMREAD: begin
 					MEM_CSB_OUT = 1'b1;
-					I_FSM_STALL_FETCH = 1'b0;
-					FSM_SEL = NOP;
+					I_FSM_STALL_FETCH = 1'b1;
 
 					enable_counter = 1'b1;
 					reset_cnt = 1'b0;
 				end
 				RESTART: begin
 					MEM_CSB_OUT = 1'b1;
-					I_FSM_STALL_FETCH = 1'b1;
-					FSM_SEL = IMEM;
+					I_FSM_STALL_FETCH = 1'b0;
 
 					enable_counter = 1'b0;
 					reset_cnt = 1'b1;

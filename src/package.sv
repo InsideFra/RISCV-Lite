@@ -45,7 +45,8 @@ typedef enum reg [31:0] {
 
 typedef enum reg   [3:0] {
 	STARTUP, STARTUP0, STARTUP1, STARTUP2, STARTUP3, STARTUP4,
-	IDLE, MEMREAD, MEMREAD1, MEMREAD2, RESTART} FSM_MEM_states_reg;
+	IDLE, MEMREAD, MEMREAD1, MEMREAD2, RESTART
+} FSM_MEM_states_reg;
 
 typedef enum bit [1:0]	{NOP = 2'b01, IMEM = 2'b10} FSM_Control_Enum;
 
@@ -184,7 +185,45 @@ typedef struct packed {
 	reg MIE;
 	reg WPRI_3;
 	reg SIE;
-	reg WPRI_4; 
+	reg WPRI_4;
 } CSR_mstatus_struct;
+
+typedef struct packed {
+	reg [127:16] interrupts;
+	reg [1:0] reserved1;
+	reg LCOFIP;
+	reg reserved2;
+	reg meip;
+	reg reserved3;
+	reg seip;
+	reg reserved4;
+	reg mtip;
+	reg reserved5;
+	reg stip;
+	reg reserved6;
+	reg msip;
+	reg reserved7;
+	reg ssip;
+	reg reserved8;
+} CSR_mip_struct;
+
+typedef struct packed {
+	reg [127:16] interrupts;
+	reg [1:0] reserved1;
+	reg LCOFIE;
+	reg reserved2;
+	reg meie;
+	reg reserved3;
+	reg seie;
+	reg reserved4;
+	reg mtie;
+	reg reserved5;
+	reg stie;
+	reg reserved6;
+	reg msie;
+	reg reserved7;
+	reg ssie;
+	reg reserved8;
+} CSR_mie_struct;
 
 endpackage
