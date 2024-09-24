@@ -14,7 +14,7 @@ module CSR_misa (
     output [25:0] CSR_misa_Extensions
 );
 
-typedef enum logic [25:0] { 
+typedef enum logic [25:0] {
     Atomic_extension = 26'b1
     Compressed_extension = 26'b100
     Double-precision_floating-point_extension = 26'b1000
@@ -42,7 +42,7 @@ always @(posedge CLK) begin
             RV32I/64I/128I_base_ISA |
             Integer_Multiply/Divide_extension |
             Superivosr_mode_implemented |
-            User_mode_implemented 
+            User_mode_implemented
         );
     end
     else begin
@@ -121,7 +121,6 @@ end
 assign CSR_marchid  <= _CSR_marchid;
 
 endmodule
-
 
 module CSR_mimpid (
     input CLK, EN, RSTn,
@@ -213,4 +212,56 @@ always @(posedge CLK) begin
 end
 
 assign CSR_mstatus  <= _CSR_mstatus;
+endmodule
+
+module CSR_mip (
+    input CLK, EN, RSTn,
+    input [127:0] d,
+
+    output CSR_mip_struct CSR_mip
+);
+
+reg CSR_mip_struct _CSR_mip;
+
+always @(posedge CLK) begin
+    if (RSTn == 0) begin
+        _CSR_mip    <= 127'h0;
+    end
+    else begin
+        if (EN == 0) begin
+            _CSR_mip    <= _CSR_mip;
+        end
+        else begin
+            _CSR_mip    <= d[127:0];
+        end
+    end
+end
+
+assign CSR_mip  <= _CSR_mip;
+endmodule
+
+module CSR_mie (
+    input CLK, EN, RSTn,
+    input [127:0] d,
+
+    output CSR_mie_struct CSR_mie
+);
+
+reg CSR_mie_struct _CSR_mie;
+
+always @(posedge CLK) begin
+    if (RSTn == 0) begin
+        _CSR_mie    <= 127'h0;
+    end
+    else begin
+        if (EN == 0) begin
+            _CSR_mie    <= _CSR_mie;
+        end
+        else begin
+            _CSR_mie    <= d[127:0];
+        end
+    end
+end
+
+assign CSR_mie  <= _CSR_mie;
 endmodule
