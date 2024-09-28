@@ -7,8 +7,9 @@ typedef struct packed {
 } pa_t;
 
 typedef struct packed {
-    reg [19:0] vpn;
-    reg [11:0] offset;
-} va_t
+    reg [9:0]   vpn_1;
+    reg [9:0]   vpn_2;
+    reg [11:0]  offset;
+} va_t;
 
 endpackage

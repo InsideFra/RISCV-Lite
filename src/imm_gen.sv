@@ -23,7 +23,7 @@ always@(op_code, func_3, instruction_i) begin
 		immediate_o = {instruction_i[31] ? 20'hFFFFF : 20'b0, instruction_i[31:25], instruction_i[11:7]};
 	end
 	else if(op_code == 5'b00100 && func_3 == 3'b001)begin     //slli
-		immediate_o = {instruction_i[31] ? 27'hFFFFFFF : 27'b0, instruction_i[24:20]};
+		immediate_o = {instruction_i[31] ? 27'h7FFFFFF : 27'b0, instruction_i[24:20]};
 	end 
 	
 	// SLTI
@@ -37,7 +37,7 @@ always@(op_code, func_3, instruction_i) begin
 	end
 	 
 	else if(op_code == 5'b00100 && func_3 == 3'b101) begin 	//srai
-		immediate_o = {instruction_i[31] ? 27'hFFFFFFF : 27'b0, instruction_i[24:20]};
+		immediate_o = {instruction_i[31] ? 27'h7FFFFFF : 27'b0, instruction_i[24:20]};
 	end
 	else if(op_code == 5'b00100 && func_3 == 3'b000) begin    //addi
 		immediate_o = {instruction_i[31] ? 20'hFFFFF : 20'b0, instruction_i[31:20]};

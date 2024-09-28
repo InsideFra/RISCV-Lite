@@ -1,17 +1,26 @@
 import my_pkg::*;
 module DataPath (
-	input reg 			TB_LOAD_PROGRAM_CTRL,
-	input reg [9:0] 	TB_LOAD_PROGRAM_ADDR,
-	input reg [31:0]	TB_LOAD_PROGRAM_DATA,
-	input reg 			TB_LOAD_DATA_CTRL,
-	input reg [9:0] 	TB_LOAD_DATA_ADDR,
-	input reg [31:0]	TB_LOAD_DATA_DATA,
-	input reg 			CLK, 	// General Architecture Clock
-	input reg 			EN,		// General Architecture Enable
-	input reg 			START,	// General Architecture Start
-	input reg 			RSTn, 	// General Architecture Reset Signal
-	output reg 			OK
-	// output reg [31:0] 	TB_Instr
+	input 	reg 		CLK, 	// General Architecture Clock
+	input 	reg 		EN,		// General Architecture Enable
+	input 	reg 		START,	// General Architecture Start
+	input 	reg 		RSTn, 	// General Architecture Reset Signal
+	output 	reg 		OK,
+
+	inout  	[7:0]		ddr3_dq,
+	inout  	[0:0]  		ddr3_dqs_n,
+	inout  	[0:0]  		ddr3_dqs_p,
+
+    output 	reg  [14:0] ddr3_addr,
+    output 	reg  [2:0]  ddr3_ba,
+    output 	reg         ddr3_ras_n,
+    output 	reg         ddr3_cas_n,
+    output 	reg         ddr3_we_n,
+    output 	reg         ddr3_reset_n,
+    output 	reg  [0:0]  ddr3_ck_p,
+    output 	reg  [0:0]  ddr3_ck_n,
+    output 	reg  [0:0]  ddr3_cke,
+    output 	reg  [0:0]  ddr3_dm,
+    output 	reg  [0:0]  ddr3_odt
 );
 
 //---------------------- General Unit VAR---------------------------------//
@@ -100,20 +109,43 @@ module DataPath (
 		.PC_Changed(PC_Changed)
 	);
 
+	// TODO: Connect all the signals
 	MMU_Block MMU0 (
     .EN(EN),
 	.CLK(CLK),
 	.RSTn(RSTn),
     .PC(IF_PC_ADD),
-    .TB_LOAD_PROGRAM_CTRL(TB_LOAD_PROGRAM_CTRL),
-	.TB_LOAD_PROGRAM_DATA(TB_LOAD_PROGRAM_DATA),
-	.TB_LOAD_PROGRAM_ADDR(TB_LOAD_PROGRAM_ADDR),
     .PC_Changed(PC_Changed),
+    .DATA_ADDR		(),
+    .DATA_BUS		(),
+    .DATA_WRITE		(),
+    .DATA_ENABLE	(),
 
-	.data(INSTR_MEM_DOUT),
-    .busy_reading(),
-    .TEST_EN_OUT(TEST_FE_EN),
-    .I_FSM_STALL_FETCH(I_FSM_STALL_FETCH)
+    .data_out		(),
+
+    .instruction_out	(),
+
+    .read_data_valid	(),
+    .read_data_out	(),
+
+    .write_ready	(),
+    .read_ready		(),
+
+
+	.ddr3_dq		(ddr3_dq),
+	.ddr3_dqs_n		(ddr3_dqs_n),
+	.ddr3_dqs_p		(ddr3_dqs_p),
+	.ddr3_addr		(ddr3_addr),
+	.ddr3_ba		(ddr3_ba),
+	.ddr3_ras_n		(ddr3_ras_n),
+	.ddr3_cas_n		(ddr3_cas_n),
+	.ddr3_we_n		(ddr3_we_n),
+	.ddr3_reset_n	(ddr3_reset_n),
+	.ddr3_ck_p		(ddr3_ck_p),
+	.ddr3_ck_n		(ddr3_ck_n),
+	.ddr3_cke		(ddr3_cke),
+	.ddr3_dm		(ddr3_dm),
+	.ddr3_odt		(ddr3_odt)
 	);
 
 // END
@@ -343,29 +375,25 @@ module DataPath (
 
 	wire enable_cs;
 
+	// TODO: Connect all the signals
 	MEMORY_Block ME0(
-	  .CLK               (CLK              ),
-	  .EN                (EN & enable_general & TEST_FE_EN),
-	  .RSTn              (RSTn             ),
-	  .START             (START            ),
-	  .TB_LOAD_DATA_CTRL (TB_LOAD_DATA_CTRL),
-	  .TB_LOAD_DATA_ADDR (TB_LOAD_DATA_ADDR),
-	  .TB_LOAD_DATA_DATA (TB_LOAD_DATA_DATA),
+	  	.CLK               	(CLK              ),
+	  	.EN                	(EN & enable_general & TEST_FE_EN),
+	  	.RSTn              	(RSTn             ),
+	  	.START             	(START            ),
 
-	  .MEM_in_ALU_res    (MEM_in_ALU_res   ),
-	  .MEM_in_instr      (MEM_in_instr     ),
-	  .MEM_in_M          (MEM_in_M         ),
-	  .enable_cs		 (enable_cs        ),
-	  .MEM_in_reg_data_2 (MEM_in_reg_data_2),
+	  	.MEM_in_ALU_res    	(MEM_in_ALU_res   ),
+	  	.MEM_in_instr      	(MEM_in_instr     ),
+	  	.MEM_in_M          	(MEM_in_M         ),
+	  	.enable_cs		 	(enable_cs        ),
+	  	.MEM_in_reg_data_2 	(MEM_in_reg_data_2),
 
-	  .TEST_EN			 (TEST_EN		   ),
-	  .TEST_MEM_CSB		 (TEST_MEM_CSB	   ),
-	  .TEST_MEM_WE		 (TEST_MEM_WE	   ),
+		.MEM_csb0			(),
+		.MEM_web0			(),
+		.MEM_addr0			(),
+		.MEM_din0			(),
 
-	  // output
-	  .MEM_mem_data      (MEM_mem_data     ),
-	  //   .TB_Instr          (TB_Instr         ),
-	  .OK				 (OK			   )
+	  	.OK				 	(OK)
 	);
 
 	assign TEST_MEM_DATA = MEM_mem_data;

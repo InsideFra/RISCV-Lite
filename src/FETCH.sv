@@ -21,8 +21,8 @@ module FETCH_Block (
 );
 
 //---------------------- Fetch Stage VAR---------------------------------//
-	reg [31:0]		PC_Input;
-	wire [31:0] 	FETCH_PC_toMUX; // From PC to MUX
+	reg [31:0] PC_Input;
+	reg [31:0] FETCH_PC_toMUX; // From PC to MUX
 
 	reg enable_PC;
 
@@ -71,35 +71,19 @@ module FETCH_Block (
 		enable_PC = HAZARD.En_PC & EN & TEST_EN;
 	end
 
-	flip_flop_pc PC0 (
-			.d(PC_Input),
-			.rstn(RSTn),
-			.clk(CLK),
-			.en(enable_PC),
-			.q(FETCH_PC_toMUX)
-	);
-
-	// wire [31:0] data_cache_out;
-
-	// ICACHE ICACHE0(
-	//   .offset         (FETCH_PC_toMUX[5:2]),
-	//   .TAG_in         (FETCH_PC_toMUX[9:6]),
-	//   .write_enable_n (ICACHE_WEn	 ),
-	//   .write_data     (instr		 ),
-	//   .RSTn           (RSTn          ),
-	//   //.RSTn           (1'b0          ),
-	//   .CLK            (CLK           ),
-	//   .EN			  (EN & TEST_EN),
-	//   //.EN			  (1'b0			 ),
-	//   .match          (match         ),
-	//   .data           (data_cache_out)
-	// );
+	// PC
+	always @ (posedge CLK) begin
+		if(!RSTn)
+			FETCH_PC_toMUX <= 32'h400000;
+		else if (enable_PC == 1'b1)
+			FETCH_PC_toMUX <= PC_Input;
+		else
+			FETCH_PC_toMUX <= FETCH_PC_toMUX;
+	end
 
 	always @ (*) begin
 		if (!HAZARD.En_IFID & !RSTn)
 			instr = 32'b0;
-//		else if (match == 1'b1)
-//			instr = data_cache_out;
 		else if (FSM_SEL == 1'b1)
 			instr = 32'b0;
 		else if (FSM_SEL == 1'b0)

@@ -1,102 +1,79 @@
 import my_pkg::*;
-module MEMORY_Block (
-	input CLK, EN, RSTn, START,
-	
-	input 			TB_LOAD_DATA_CTRL,
-	input [9:0]	TB_LOAD_DATA_ADDR,
-	input [31:0] 	TB_LOAD_DATA_DATA,
+module MEMORY_Block #(
+	parameter MEM_ADDR_SIZE = 10,
+	parameter MEM_DATA_SIZE = 32
+)(
+	input 	CLK,
+	input	EN,
+	input	RSTn,
+	input 	START,
 
-    input [31:0]   	MEM_in_ALU_res,
-	input [31:0]	MEM_in_instr,
+    input 	[31:0]	MEM_in_ALU_res,
+	input 	[31:0]	MEM_in_instr,
 
-	input M_ctrl 	MEM_in_M,
-	input wire		enable_cs,
-    input [31:0]   	MEM_in_reg_data_2,
-	
-	input 			TEST_EN,
-	input 			TEST_MEM_CSB,
-	input 			TEST_MEM_WE,
+	input 	M_ctrl 	MEM_in_M,
+	input 	wire	enable_cs,
+    input 	[31:0] 	MEM_in_reg_data_2,
 
-	output [31:0] MEM_mem_data,
-	// output [31:0] TB_Instr,
- 	output reg OK	
+	output 	reg	MEM_csb0,
+	output	reg	MEM_web0,
+	output 	reg [MEM_ADDR_SIZE-1:0] MEM_addr0,
+	output 	reg	[MEM_DATA_SIZE-1:0]	MEM_din0,
+
+ 	output reg OK
 );
 
 //---------------------- Memory Stage VAR---------------------------------//
-	reg MEM_web0;
-	reg MEM_csb0;
-	reg [9:0] MEM_addr0;
-	reg [31:0] MEM_din0;
 	reg [31:0] WB_in_instr;
-	//assign MEM_INSTRUCTION = Instruction_Enum'(MEM_in_instr);
-
 //---------------------- Memory Stage VAR END-----------------------------//
-	
+
 	assign TB_Instr = WB_in_instr;
 
 	always @ (*) begin
-		if (TB_LOAD_DATA_CTRL == 1'b1)
-			MEM_web0 = 1'b1;
-		else if (TEST_EN == 1'b1)
-			MEM_web0 = TEST_MEM_WE;
-		else
-			MEM_web0 = ~MEM_in_M.MemRead;
+		MEM_web0 = ~MEM_in_M.MemRead;
 	end
-	
-	
+
+
 	always @ (*) begin
-		if (TB_LOAD_DATA_CTRL == 1'b1)
-			MEM_csb0 = 1'b1;
-		else if (TEST_EN == 1'b1)
-			MEM_csb0 = TEST_MEM_CSB;
-		else if (enable_cs == 1'b1)
+		if (enable_cs == 1'b1)
 			MEM_csb0 = 1'b1;
 		else
 			MEM_csb0 = ~MEM_in_M.CS;
 	end
-	
+
 	always @ (*) begin
-		if (TB_LOAD_DATA_CTRL == 1'b1)
-			MEM_addr0 = TB_LOAD_DATA_ADDR;
-		else if (TEST_EN == 1'b1)
-			MEM_addr0 = 9'b1;
-		else
-			MEM_addr0 = {MEM_in_ALU_res[8:0]};
+		MEM_addr0 = {MEM_in_ALU_res[8:0]};
 	end
-	
+
 	always @ (*) begin
-		if (TB_LOAD_DATA_CTRL == 1'b1)
-			MEM_din0 = TB_LOAD_DATA_DATA;
-		else if (TEST_EN == 1'b1)
-			MEM_din0 = 32'hFFFFFFFF;
-		else
-			MEM_din0 = MEM_in_reg_data_2;
+		MEM_din0 = MEM_in_reg_data_2;
 	end
-	
-	//Data memory 	
-	blk_mem_gen_1 data_mem0(
-	.clka  	(CLK),
-	.ena  	(MEM_csb0),
-	.wea  	(MEM_web0),
- 	.addra 	(MEM_addr0),
-	.dina  	(MEM_din0),
-   	.douta 	(MEM_mem_data)
-  	);
-	
-	flip_flop mem_wb_instr (
-		.d(MEM_in_instr), 
-		.rstn(RSTn), 
-		.clk(CLK), 
-		.en(EN & START), 
-		.q(WB_in_instr)
-	);
+
+	//Data memory
+	// blk_mem_gen_1 data_mem0(
+	// .clka  	(CLK),
+	// .ena  	(MEM_csb0),
+	// .wea  	(MEM_web0),
+ 	// .addra 	(MEM_addr0),
+	// .dina  	(MEM_din0),
+   	// .douta 	(MEM_mem_data)
+  	// );
+
+	always @ (posedge CLK) begin
+	if(!RSTn)
+		WB_in_instr <= 32'b0;
+	else if (EN & START == 1'b1)
+		WB_in_instr <= MEM_in_instr;
+	else
+		WB_in_instr <= WB_in_instr;
+	end
 
 always @ (CLK)
-	if (MEM_csb0 == 1'b1 & 
-		MEM_web0 == 1'b1 & 
+	if (MEM_csb0 == 1'b1 &
+		MEM_web0 == 1'b1 &
 		MEM_addr0 == 9'h038 &
 		MEM_din0 == 32'h000000002)
 		OK <= 1'b1;
-	else 
+	else
 		OK <= 1'b0;
 endmodule
