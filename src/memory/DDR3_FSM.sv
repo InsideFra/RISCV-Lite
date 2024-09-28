@@ -20,7 +20,10 @@ module ddr3_controller_fsm (
     input  wire [63:0]  app_rd_data,       // Read data from memory controller (64-bit wide)
     input  wire         app_rd_data_valid, // Read data valid
     output reg          read_data_valid,   // Read data valid output
-    output reg [31:0]   read_data_out      // Read data output (32-bit)
+    output reg [31:0]   read_data_out,     // Read data output (32-bit)
+
+    output reg          write_ready,       // Indicates when the controller is ready for a new write request
+    output reg          read_ready         // Indicates when the controller is ready for a new read request
 );
 
     // DDR3 Command definitions
@@ -93,22 +96,26 @@ module ddr3_controller_fsm (
     // FSM: Output logic and control signals
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            app_addr       <= 29'b0;
-            app_cmd        <= 3'b0;
-            app_en         <= 1'b0;
-            app_wdf_data   <= 64'b0;
-            app_wdf_wren   <= 1'b0;
-            app_wdf_mask   <= 8'hFF;
-            read_data_out  <= 32'b0;
+            app_addr        <= 29'b0;
+            app_cmd         <= 3'b0;
+            app_en          <= 1'b0;
+            app_wdf_data    <= 64'b0;
+            app_wdf_wren    <= 1'b0;
+            app_wdf_mask    <= 8'hFF;
+            read_data_out   <= 32'b0;
             read_data_valid <= 1'b0;
+            write_ready     <= 1'b0;
+            read_ready      <= 1'b0;
         end else begin
-            app_en         <= 1'b0; // Default is disabled
-            app_wdf_wren   <= 1'b0;
+            app_en          <= 1'b0; // Default is disabled
+            app_wdf_wren    <= 1'b0;
             read_data_valid <= 1'b0;
 
             case (state)
                 IDLE: begin
-                    // Wait for read or write request
+                    // Signal readiness for new read/write operations
+                    write_ready <= (app_rdy && app_wdf_rdy);
+                    read_ready  <= app_rdy;
                 end
 
                 WRITE_CMD: begin
@@ -116,6 +123,7 @@ module ddr3_controller_fsm (
                         app_addr <= addr_in;
                         app_cmd  <= CMD_WRITE;
                         app_en   <= 1'b1;
+                        write_ready <= 1'b0; // Writing now, not ready for new request
                     end
                 end
 
@@ -129,9 +137,9 @@ module ddr3_controller_fsm (
 
                         // Set the mask to only allow writing 32 bits
                         if (bit32_select)
-                            app_wdf_mask <= 8'b00001111;  // Mask lower 32 bits
+                            app_wdf_mask <= 8'b00001111;  // Mask lower 32 bits, write upper 32 bits
                         else
-                            app_wdf_mask <= 8'b11110000;  // Mask upper 32 bits
+                            app_wdf_mask <= 8'b11110000;  // Mask upper 32 bits, write lower 32 bits
 
                         app_wdf_wren <= 1'b1;
                     end
@@ -140,7 +148,7 @@ module ddr3_controller_fsm (
                 WAIT_WRITE_COMPLETE: begin
                     // Wait for the write completion signal (app_wdf_end)
                     if (app_wdf_end) begin
-                        app_wdf_wren <= 1'b0;
+                        write_ready <= 1'b1; // Ready for a new write request
                     end
                 end
 
@@ -149,6 +157,7 @@ module ddr3_controller_fsm (
                         app_addr <= addr_in;
                         app_cmd  <= CMD_READ;
                         app_en   <= 1'b1;
+                        read_ready <= 1'b0; // Reading now, not ready for new request
                     end
                 end
 
@@ -161,11 +170,14 @@ module ddr3_controller_fsm (
                             read_data_out <= app_rd_data[31:0];  // Lower 32 bits
 
                         read_data_valid <= 1'b1;
+                        read_ready <= 1'b1; // Ready for a new read request
                     end
                 end
 
                 DONE: begin
                     // Return to IDLE, reset signals
+                    write_ready <= 1'b1; // Ready for a new write request
+                    read_ready  <= 1'b1; // Ready for a new read request
                 end
             endcase
         end
