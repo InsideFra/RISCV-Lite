@@ -8,7 +8,6 @@ module ddr3_cache (
 
     // Write FIFO
     input reg write_fifo_full,
-    input reg write_fifo_empty,
 
     // Read IN FIFO
     input reg read_in_fifo_full,
@@ -27,12 +26,12 @@ module ddr3_cache (
     output reg  write_into_read_in_fifo,
 
     // READ OUT FIFO
-    output reg read_into_read_out_fifo;
+    output reg read_into_read_out_fifo,
 
     output reg [31:0] read_data,
     output reg hit,
 
-    output reg  please_stall_everything,
+    output reg  please_stall_everything
 );
 
     // Cache parameters
@@ -52,6 +51,50 @@ module ddr3_cache (
     wire [TAG_SIZE-1:0] tag = address[31:32-TAG_SIZE];
     wire [INDEX_SIZE-1:0] index = address[INDEX_SIZE+BLOCK_SIZE-1:BLOCK_SIZE];
     wire [BLOCK_SIZE-1:0] offset = address[BLOCK_SIZE-1:0];
+
+    // Task to handle cache miss
+    task handle_cache_miss;
+        input [TAG_SIZE-1:0] tag;
+        input [INDEX_SIZE-1:0] index;
+        integer i;
+        begin
+            if (cache_valid[index] == 1'b1) begin
+                if (write_fifo_full == 1'b0) begin
+                    please_stall_everything <= 1'b1;
+                    write_into_fifo <= 1'b1;
+                    write_into_fifo_address <= {tag, index, offset};
+                    write_into_fifo_data <= {cache_data[index], cache_data[index+1], cache_data[index+2], cache_data[index+3]};
+
+                    for (i=0; i < 4; i = i + 1) begin
+                        cache_dirty[index+i] <= 1'b0;
+                        cache_valid[index+i] <= 1'b0;
+                    end
+                end
+                else begin
+                    please_stall_everything <= 1'b1;
+                end
+            end
+            else begin
+                if (read_in_fifo_full == 1'b0) begin
+                    please_stall_everything <= 1'b1;
+                    write_into_read_in_fifo <= 1'b1;
+                    write_into_read_in_fifo_address <= address;
+                    for (i=0; i < 4; i = i + 1) begin
+                        cache_read_in_fifo_request[index+i] <= 1'b1;
+                    end
+                end
+                else if (read_out_fifo_full == 1'b1) begin
+                    read_into_read_out_fifo <= 1'b1;
+                    for (i=0; i < 4; i = i + 1) begin
+                        cache_dirty[index+i] <= 1'b0;
+                        cache_valid[index+i] <= 1'b1;
+                        cache_data[index+i] <= read_out_fifo_data[31+(32*i):0+(32*i)];
+                        cache_tag[index+i]  <= tag;
+                    end
+                end
+            end
+        end
+    endtask
 
     always @(posedge clk or posedge reset) begin
         please_stall_everything <= 1'b0;
@@ -77,6 +120,8 @@ module ddr3_cache (
                 cache_dirty[i] <= 0;
                 cache_read_in_fifo_request[i] <= 0;
             end
+            hit <= 0;
+            read_data <= 32'b0;
         end else begin
             if (read) begin
                 if (cache_valid[index] && cache_tag[index] == tag) begin
@@ -87,79 +132,14 @@ module ddr3_cache (
                 else begin
                     // Cache miss
                     hit <= 0;
-                    if (cache_valid[index] == 1'b1) begin
-                        if (write_fifo_full == 1'b0) begin
-                            please_stall_everything <= 1'b1;
-                            write_into_fifo <= 1'b1;
-                            write_into_fifo_address <= {tag, index, offset};
-                            write_into_fifo_data <= {cache_data[index], cache_data[index+1], cache_data[index+2], cache_data[index+3]};
-
-                            for (i=0; i < 4; i = i + 1) begin
-                                cache_dirty[index+i] <= 1'b0;
-                                cache_valid[index+i] <= 1'b0;
-                            end
-                        end
-                        else begin
-                            please_stall_everything <= 1'b1;
-                        end
-
-                    end
-                    // else if (cache_valid[index] == 1'b0) begin
-                    else begin
-                        if (write_fifo_empty == 1'b0) begin
-                            please_stall_everything <= 1'b1;
-                        end
-                        else begin
-                            if (read_in_fifo_empty == 1'b0) begin
-                                please_stall_everything <= 1'b1;
-                            end
-                            else if (cache_read_in_fifo_request[index] == 1'b0) begin
-                                if (read_in_fifo_full == 1'b1) begin
-                                    please_stall_everything <= 1'b1;
-                                end
-                                else begin
-                                    please_stall_everything <= 1'b1;
-                                    write_into_read_in_fifo <= 1'b1;
-                                    write_into_read_in_fifo_address <= address;
-                                    for (i=0; i < 4; i = i + 1) begin
-                                        cache_read_in_fifo_request[index+i] <= 1'b1;
-                                    end
-                                end
-                            end
-                            else if (read_out_fifo_full == 1'b0) begin
-                                please_stall_everything <= 1'b1;
-                            end
-                            else if (read_out_fifo_full == 1'b1) begin
-                                read_into_read_out_fifo <= 1'b1;
-                                for (i=0; i < 4; i = i + 1) begin
-                                    cache_dirty[index+i] <= 1'b0;
-                                    cache_valid[index+i] <= 1'b1;
-                                    cache_data[index+i] <= read_out_fifo_data[31+(32*i):0+(32*i)];
-                                    cache_tag[index+i]  <= tag;
-                                end
-                            end
-                        end
-                    end
+                    handle_cache_miss(tag, index);
                 end
             end else if (write) begin
                 if (cache_dirty[index] && cache_tag[index] != tag) begin
                     // Write back to DDR3 RAM (not implemented here)
                     // ddr3_write({cache_tag[index], index, offset}, cache_data[index]);
 
-                    if (write_fifo_full == 1'b0) begin
-                        please_stall_everything <= 1'b1;
-                        write_into_fifo <= 1'b1;
-                        write_into_fifo_address <= {tag, index, offset};
-                        write_into_fifo_data <= {cache_data[index], cache_data[index+1], cache_data[index+2], cache_data[index+3]};
-
-                        for (i=0; i < 4; i = i + 1) begin
-                            cache_dirty[index+i] <= 1'b0;
-                            cache_valid[index+i] <= 1'b0;
-                        end
-                    end
-                    else begin
-                        please_stall_everything <= 1'b1;
-                    end
+                    handle_cache_miss(tag, index);
                 end
                 else begin
                     // Write data to cache
@@ -172,4 +152,3 @@ module ddr3_cache (
         end
     end
 endmodule
-
