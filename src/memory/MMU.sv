@@ -65,7 +65,6 @@ module ram (
     output reg  [0:0]   ddr3_odt
 );
 
-
     wire            sys_clk_p;
     wire            sys_clk_n;
 
@@ -158,24 +157,48 @@ module ram (
         .app_wdf_mask                   (app_wdf_mask),
 
         // System Clock Ports
-        .sys_clk_p                      (sys_clk_p),
-        .sys_clk_n                      (sys_clk_n),
+        .sys_clk_i                      (sys_clk_p), // TODO: Fix the clocks
 
         // Reference Clock Ports
-        .clk_ref_p                      (clk_ref_p),
-        .clk_ref_n                      (clk_ref_n),
         .device_temp                    (device_temp),
         .sys_rst                        (sys_rst)
     );
 
-    ddr3_controller_fsm ddr3_fsm (
-        .clk(clk),
-        .rst_n(rst_n),
-        .addr_in(addr_in),
-        .write_data_in(write_data_in),
-        .read_req(read_req),
-        .write_req(write_req),
-        .bit32_select(bit32_select),
+    reg _read_data_valid;
+    reg _read_data_valid_dram;
+    assign read_data_valid = _read_data_valid;
+
+    reg [31:0] _read_data_out;
+    reg [31:0] _read_data_out_dram;
+    assign read_data_out = _read_data_out;
+
+    wire write_fifo_full;
+    wire write_fifo_empty;
+
+    wire read_in_fifo_full;
+    wire read_in_fifo_empty;
+
+    ddr3_controller_fsm #(
+        .ADDRESS_WIDTH(32),
+        .DATA_WIDTH(128)
+    ) ddr3_fsm(
+        .clk    (),
+        .EN     (),
+        .rst_n   (),
+        .write_fifo_data        (),
+        .write_fifo_empty       (),
+        .write_fifo_address     (),
+
+        .read_in_fifo_address   (),
+        .read_in_fifo_empty     (),
+
+        .read_out_fifo_address  (),
+        .read_out_fifo_full     (),
+        .read_out_fifo_data     (),
+
+        .write_fifo_read        (),
+        .read_in_fifo_read      (),
+        .read_out_fifo_write    (),
 
         .app_addr(app_addr),
         .app_cmd(app_cmd),
@@ -188,14 +211,123 @@ module ram (
         .app_wdf_rdy(app_wdf_rdy),
         .app_wdf_end(app_wdf_end),
         .app_rd_data(app_rd_data),
-        .app_rd_data_valid(app_rd_data_valid),
-        .read_data_valid(read_data_valid),
-        .read_data_out(read_data_out),
+        .app_rd_data_valid(app_rd_data_valid)
+    );
 
-        .write_ready(write_ready),
-        .read_ready(read_ready)
-);
+    wire [31:0] cache_address;
+    assign cache_address = addr_in;
 
+    reg [31:0] cache_write_data;
+    reg cache_write;
+    reg cache_read;
+    reg [31:0] cache_read_data;
+    wire cache_hit;
+
+    ddr3_cache ddr3_cache(
+        .clk        (CLK),
+        .reset      (rst_n),
+        .address    (cache_address),
+        .write_data (cache_write_data),
+        .read       (cache_read),
+        .write      (cache_write),
+        .read_data  (cache_read_data),
+        .write_fifo_full    (write_fifo_full),
+        .read_in_fifo_full  (read_in_fifo_full),
+        .read_out_fifo_full (read_out_fifo_full),
+        .read_out_fifo_data (read_out_fifo_data),
+
+        .write_into_write_fifo_address  (write_into_write_fifo_address),
+        .write_into_write_fifo_data     (write_into_write_fifo_data),
+        .write_into_write_fifo          (write_into_write_fifo),
+
+        .write_into_read_in_fifo_address(write_into_read_in_fifo_address),
+        .write_into_read_in_fifo(write_into_read_in_fifo),
+
+        .read_into_read_out_fifo(read_into_read_out_fifo),
+
+        .please_stall_everything(),
+        .hit        (cache_hit)
+    );
+
+    // During a READ to the DRAM, we check if the data is in the Cache
+    always @ (posedge CLK) begin
+        if (read_req == 1'b1) begin
+            if (cache_hit == 1'b1) begin
+                _read_data_valid    <= 1'b1;
+                _read_data_out      <= cache_read_data;
+            end
+            else begin
+                _read_data_valid    <= _read_data_valid_dram;
+                _read_data_out      <= _read_data_out_dram;
+            end
+        end
+        else begin
+            _read_data_valid    <= 1'b0;
+            _read_data_out      <= 32'bZ;
+        end
+    end
+
+    fifo_address_data #(
+        .N(2048),
+        .ADDRESS_WIDTH(32),
+        .DATA_WIDTH(128)
+    ) write_fifo_data (
+        .clk(CLK),
+        .rst(rst_n),
+        .wr_en(write_into_write_fifo),
+        .rd_en(),
+        .data_in(write_into_write_fifo_data),
+        .address_in(write_into_write_fifo_address),
+        .data_out(),
+        .address_out(),
+        .full(write_fifo_full),
+        .empty(write_fifo_empty)
+    );
+
+    fifo_address_data #(
+        .N(2048),
+        .ADDRESS_WIDTH(32),
+        .DATA_WIDTH(128)
+    ) read_out_fifo (
+        .clk(CLK),
+        .rst(rst_n),
+        .wr_en(),
+        .rd_en(read_into_read_out_fifo),
+        .data_in(),
+        .address_in(),
+        .data_out(read_out_fifo_data),
+        .address_out(),
+        .full(read_out_fifo_full),
+        .empty(read_out_fifo_empty)
+    );
+
+    fifo_address #(
+        .N(2048),
+        .WIDTH(32)
+    ) read_out_fifo_address (
+        .clk(CLK),
+        .rst(rst_n),
+        .wr_en(),
+        .rd_en(read_into_read_out_fifo),
+        .data_in(),
+        .data_out(),
+        .full(),
+        .empty()
+    );
+
+    fifo_address #(
+        .N(2048),
+        .WIDTH(128)
+    ) read_in_fifo (
+        .clk(CLK),
+        .rst(rst_n),
+        .wr_en(write_into_read_in_fifo),
+        .rd_en(),
+        .data_in(write_into_read_in_fifo_address),
+        .data_out(),
+        .full(read_in_fifo_full),
+        .empty(read_in_fifo_empty)
+    );
 endmodule
 
 module MMU_Block #(
@@ -317,12 +449,12 @@ rom #(
 
 always @ (*) begin
     // RAM Signals
-    _instr_ram_address  <= Z;
-    _instr_ram_din      <= Z;
+    _instr_ram_address  <= 32'bZ;
+    _instr_ram_din      <= 32'bZ;
     _instr_ram_wea      <= 1'b0;
 
     // ROM Signals
-    _instr_rom_address  <= Z;
+    _instr_rom_address  <= 32'bZ;
 
     // Select ROM
     if ((PC >= 0) & (PC <= 32'hffff)) begin
