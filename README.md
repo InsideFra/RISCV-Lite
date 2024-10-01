@@ -27,10 +27,10 @@
 > [!NOTE]
 >
 > Currently in the FETCH block a 2 clock latency read memory is present.
-> 
-> New implementation are being studyed and reported in the following draft
+>
+> New implementation is currently under development
 
-![LAST_MEMORY_FETCH_DRAFT](/doc/MEMORY.jpg)
+<!-- ![LAST_MEMORY_FETCH_DRAFT](/doc/MEMORY.jpg) -->
 
  Currently FPGA usage (Implementation):
  - Target Board: xc7a12tcpg238
