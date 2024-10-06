@@ -182,6 +182,12 @@
 
  # Utils
 
+ ## C to Assembly
+ ```sh
+ /opt/riscv32/bin/riscv32-unknown-linux-gnu-gcc -g -ffreestanding -O0 -Wl,--gc-sections -nostartfiles -nostdlib -nodefaultlibs -Wl,-T,linker.ld crt0.s main.c -march=rv32i
+ /opt/riscv32/bin/riscv32-unknown-linux-gnu-objdump -d a.out > main.s
+ ```
+
  ## HEX to Assembly
  ```sh
  /opt/riscv32/bin/riscv32-unknown-linux-gnu-gcc -c sim/main.s
