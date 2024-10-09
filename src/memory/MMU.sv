@@ -40,7 +40,6 @@ module ram (
     input  wire [31:0]  write_data_in,     // 32-bit data input for write
     input  wire         read_req,          // Read request signal
     input  wire         write_req,         // Write request signal
-    input  wire         bit32_select,      // 1 for upper 32 bits, 0 for lower 32 bits
 
     output reg          read_data_valid,   // Read data valid output
     output reg [31:0]   read_data_out,     // Read data output (32-bit)
@@ -198,7 +197,8 @@ module ram (
 
         .write_fifo_read        (),
         .read_in_fifo_read      (),
-        .read_out_fifo_write    (),
+        .read_out_fifo_address_write    (),
+        .read_out_fifo_data_write       (),
 
         .app_addr(app_addr),
         .app_cmd(app_cmd),

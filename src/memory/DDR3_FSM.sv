@@ -27,14 +27,14 @@ module ddr3_controller_fsm #(
     input  wire [127:0] app_rd_data,       // Read data from memory controller (64-bit wide)
     input  wire         app_rd_data_valid, // Read data valid
 
-    output      [ADDRESS_WIDTH-1:0] read_out_fifo_address,
-    output                          read_out_fifo_full,
-    output      [DATA_WIDTH-1:0]    read_out_fifo_data,
+    output reg  [ADDRESS_WIDTH-1:0] read_out_fifo_address,
+    output reg                      read_out_fifo_full,
+    output reg  [DATA_WIDTH-1:0]    read_out_fifo_data,
 
-    output              write_fifo_read,
-    output              read_in_fifo_read,
-    output              read_out_fifo_address_write,
-    output              read_out_fifo_data_write
+    output reg          write_fifo_read,
+    output reg          read_in_fifo_read,
+    output reg          read_out_fifo_address_write,
+    output reg          read_out_fifo_data_write
 );
 
     // DDR3 Command definitions
@@ -45,7 +45,8 @@ module ddr3_controller_fsm #(
     typedef enum logic [3:0] {
         IDLE,
         WRITE,
-        READ,
+        READ0,
+        READ1
     } state_t;
 
     state_t state, next_state;
@@ -75,7 +76,7 @@ module ddr3_controller_fsm #(
             end
 
             READ1: begin
-                if read_in_fifo_empty == 1'b0 begin
+                if (read_in_fifo_empty == 1'b0) begin
                     next_state = READ1;
                 end
                 else begin
@@ -174,7 +175,7 @@ module ddr3_controller_fsm #(
                             read_out_fifo_address <= read_in_fifo_address;
                             read_out_fifo_address_write <= 1'b1;
 
-                            if read_in_fifo_empty == 1'b0 begin
+                            if (read_in_fifo_empty == 1'b0) begin
                                 read_in_fifo_read <= 1'b1;
                             end
                         end
