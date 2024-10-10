@@ -14,6 +14,10 @@ module ddr3_controller_fsm #(
     input [ADDRESS_WIDTH-1:0]   read_in_fifo_address,
     input                       read_in_fifo_empty,
 
+    input  reg                  read_out_fifo_empty,
+
+    input  reg                  read_out_fifo_full,
+
     output reg  [28:0]  app_addr,          // Address to memory controller
     output reg  [2:0]   app_cmd,           // Command to memory controller
     output reg          app_en,            // Enable signal to memory controller
@@ -23,12 +27,12 @@ module ddr3_controller_fsm #(
 
     input  wire         app_rdy,           // Controller ready for command
     input  wire         app_wdf_rdy,       // Write FIFO ready for data
-    input  wire         app_wdf_end,       // Write data end signal
     input  wire [127:0] app_rd_data,       // Read data from memory controller (64-bit wide)
     input  wire         app_rd_data_valid, // Read data valid
 
+    output reg          app_wdf_end,       // Write data end signal
+
     output reg  [ADDRESS_WIDTH-1:0] read_out_fifo_address,
-    output reg                      read_out_fifo_full,
     output reg  [DATA_WIDTH-1:0]    read_out_fifo_data,
 
     output reg          write_fifo_read,
@@ -84,6 +88,10 @@ module ddr3_controller_fsm #(
                 end
             end
 
+            default: begin
+                next_state = IDLE;
+            end
+
             // WRITE_CMD: begin
             //     if (app_rdy && app_wdf_rdy)
             //         next_state = WRITE_DATA;
@@ -124,6 +132,7 @@ module ddr3_controller_fsm #(
             app_wdf_data    <= 128'b0;
             app_wdf_wren    <= 1'b0;
             app_wdf_mask    <= 16'hFF;
+            app_wdf_end     <= 1'b0;
 
             read_in_fifo_read <= 1'b0;
         end else begin
@@ -193,8 +202,12 @@ module ddr3_controller_fsm #(
 
     always @(*) begin
         if (app_rd_data_valid) begin
-            read_out_fifo_data <= app_rd_data;
-            read_out_fifo_data_write <= 1'b1;
+            read_out_fifo_data          <= app_rd_data;
+            read_out_fifo_data_write    <= 1'b1;
+        end
+        else begin
+            read_out_fifo_data          <= 0;
+            read_out_fifo_data_write    <= 1'b0;
         end
     end
 

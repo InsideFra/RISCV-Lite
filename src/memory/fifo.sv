@@ -24,18 +24,28 @@ module fifo_address #(
             full <= 0;
             empty <= 1;
         end else begin
+            full <= (fifo_count == N);
+            empty <= (fifo_count == 0);
+
             if (wr_en && !full) begin
                 fifo_mem[wr_ptr] <= data_in;
                 wr_ptr <= wr_ptr + 1;
                 fifo_count <= fifo_count + 1;
             end
+            else begin
+                wr_ptr      <= 0;
+                fifo_count  <= fifo_count + 1;
+            end
+
             if (rd_en && !empty) begin
                 data_out <= fifo_mem[rd_ptr];
                 rd_ptr <= rd_ptr + 1;
                 fifo_count <= fifo_count - 1;
             end
-            full <= (fifo_count == N);
-            empty <= (fifo_count == 0);
+            else begin
+                data_out    <= '{default: 0};
+                rd_ptr      <= 0;
+            end
         end
     end
 
@@ -76,6 +86,10 @@ module fifo_address_data #(
     reg [clog2(N):0]    fifo_count;
 
     always @(posedge clk) begin
+        address_out <= '{default: 0};
+        data_out    <= '{default: 0};
+
+
         if (rst) begin
             wr_ptr <= 0;
             rd_ptr <= 0;
@@ -83,20 +97,27 @@ module fifo_address_data #(
             full <= 0;
             empty <= 1;
         end else begin
+            full <= (fifo_count == N);
+            empty <= (fifo_count == 0);
+
             if (wr_en && !full) begin
                 address_fifo_mem[wr_ptr]    <= address_in;
                 data_fifo_mem[wr_ptr]       <= data_in;
                 wr_ptr <= wr_ptr + 1;
                 fifo_count <= fifo_count + 1;
+
+                address_out <= '{default: 0};
+                data_out    <= '{default: 0};
+                rd_ptr      <= 0;
             end
             if (rd_en && !empty) begin
                 address_out <= address_fifo_mem[rd_ptr];
                 data_out    <= data_fifo_mem[rd_ptr];
-                rd_ptr <= rd_ptr + 1;
-                fifo_count <= fifo_count - 1;
+                rd_ptr      <= rd_ptr + 1;
+                fifo_count  <= fifo_count - 1;
+
+                wr_ptr      <= 0;
             end
-            full <= (fifo_count == N);
-            empty <= (fifo_count == 0);
         end
     end
 

@@ -1,5 +1,66 @@
 module DP_DDR3();
 
+    reg CLK;
+    reg RSTn;
+
+    // Control and Data Signals
+    reg [31:0] DATA_ADDR;
+    reg [127:0] DATA_BUS;
+    reg DATA_ENABLE;
+    reg DATA_WRITE;
+
+    // Clock Generation
+    initial begin
+        CLK = 0;
+        forever #2.5 CLK = ~CLK; // 100 MHz clock
+    end
+
+    // Test Procedure
+    initial begin
+        // Initialize signals
+        RSTn = 0;
+        DATA_ADDR = 32'h0;
+        DATA_BUS = 128'h0;
+        DATA_ENABLE = 0;
+        DATA_WRITE = 0;
+
+        // Reset sequence
+        #10 RSTn = 1; // Release reset
+
+        // Write data test
+        #10;
+        DATA_ADDR = 32'h0000_0004;
+        DATA_BUS = 128'hDEAD_BEEF;
+        DATA_ENABLE = 1;
+        DATA_WRITE = 1;
+
+        // Wait for write to complete
+        wait(write_ready);
+
+        // Read data test
+        #20;
+        DATA_ADDR = 32'h0000_0004;
+        DATA_ENABLE = 1;
+        DATA_WRITE = 0;
+
+        // Wait for read to complete and check data
+        wait(read_ready);
+        if (read_data_out == 32'hDEAD_BEEF) begin
+            $display("Read successful: 0x%h", read_data_out);
+        end else begin
+            $display("Read failed: 0x%h", read_data_out);
+        end
+
+        // Finish simulation
+        #100;
+        $stop;
+    end
+
+    wire [15:0] ddr3_dq;
+    wire [1:0]  ddr3_dqs;
+    wire [1:0]  ddr3_dqs_n;
+    wire [1:0]  ddr3_dm;
+
     ram ram0 (
         .clk            (CLK),
         .rst_n          (RSTn),
@@ -47,7 +108,7 @@ module DP_DDR3();
         .dqs    (ddr3_dqs_p),
         .dqs_n  (ddr3_dqs_n),
         .tdqs_n (),
-        .odt    (ddr3_odt),
+        .odt    (ddr3_odt)
     );
 
 endmodule
