@@ -3,7 +3,7 @@ module fifo_address #(
     parameter WIDTH = 128
 ) (
     input   clk,
-    input   rst,
+    input   rst_n,
     input   wr_en,
     input   rd_en,
     input       [WIDTH-1:0] data_in,
@@ -17,7 +17,7 @@ module fifo_address #(
     reg [clog2(N):0]    fifo_count;
 
     always @(posedge clk) begin
-        if (rst) begin
+        if (~rst_n) begin
             wr_ptr <= 0;
             rd_ptr <= 0;
             fifo_count <= 0;
@@ -67,7 +67,7 @@ module fifo_address_data #(
     parameter DATA_WIDTH = 128
 ) (
     input   clk,
-    input   rst,
+    input   rst_n,
     input   wr_en,
     input   rd_en,
     input       [ADDRESS_WIDTH-1:0] address_in,
@@ -90,7 +90,7 @@ module fifo_address_data #(
         data_out    <= '{default: 0};
 
 
-        if (rst) begin
+        if (~rst_n) begin
             wr_ptr <= 0;
             rd_ptr <= 0;
             fifo_count <= 0;

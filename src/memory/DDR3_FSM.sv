@@ -140,7 +140,11 @@ module ddr3_controller_fsm #(
             app_en          <= 1'b0;
             app_wdf_wren    <= 1'b0;
 
-            read_in_fifo_read <= 1'b0;
+            read_in_fifo_read   <= 1'b0;
+            write_fifo_read     <= 1'b0;
+
+            read_out_fifo_address       <= 0;
+            read_out_fifo_address_write <= 1'b0;
 
             case (state)
                 IDLE: begin

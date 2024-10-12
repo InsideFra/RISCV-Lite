@@ -1,6 +1,6 @@
 module ddr3_cache (
     input clk,
-    input reset,
+    input rst_n,
     input [31:0] address,
     input [31:0] write_data,
     input read,
@@ -37,8 +37,8 @@ module ddr3_cache (
 
     // Cache parameters
     parameter CACHE_SIZE = 256;
-    parameter BLOCK_SIZE = 4;
-    parameter TAG_SIZE = 24;
+    parameter BLOCK_SIZE = 4 + 2;
+    parameter TAG_SIZE = 18;
     parameter INDEX_SIZE = 8;
 
     // Cache storage
@@ -51,7 +51,7 @@ module ddr3_cache (
     // Address breakdown
     wire        [TAG_SIZE-1:0]      tag       = address[31:32-TAG_SIZE];
     wire signed [INDEX_SIZE-1:0]    index     = address[INDEX_SIZE+BLOCK_SIZE-1:BLOCK_SIZE];
-    wire        [BLOCK_SIZE-1:0]    offset    = address[BLOCK_SIZE-1:0];
+    wire        [BLOCK_SIZE-1:2]    offset    = address[BLOCK_SIZE-1:2];
 
     // Task to handle cache miss
     task handle_cache_miss;
@@ -106,8 +106,8 @@ module ddr3_cache (
         // FIFO related
         // WRITE INTO FIFO
         write_into_write_fifo         <= 1'b0;
-        write_into_write_fifo_address <= 32'bZ;
-        write_into_write_fifo_data    <= 128'bZ;
+        write_into_write_fifo_address <= 32'b0;
+        write_into_write_fifo_data    <= 128'b0;
 
         // READ IN FIFO
         write_into_read_in_fifo <= 1'b0;
@@ -116,14 +116,14 @@ module ddr3_cache (
         // READ OUT FIFO
         read_into_read_out_fifo <= 1'b0;
 
-        if (reset) begin
+        if (~rst_n) begin
             // Initialize cache
             integer i;
             for (i = 0; i < CACHE_SIZE; i = i + 1) begin
-                cache_data[i] <= 0;
-                cache_tag[i] <= 0;
-                cache_valid[i] <= 0;
-                cache_dirty[i] <= 0;
+                cache_data[i]   <= 0;
+                cache_tag[i]    <= 0;
+                cache_valid[i]  <= 0;
+                cache_dirty[i]  <= 0;
                 cache_read_in_fifo_request[i] <= 0;
             end
             hit <= 0;
@@ -133,7 +133,7 @@ module ddr3_cache (
                 if (cache_valid[index] && cache_tag[index] == tag) begin
                     // Cache hit
                     hit <= 1;
-                    read_data <= cache_data[index];
+                    read_data <= cache_data[index*16+offset];
                 end
                 else begin
                     // Cache miss
@@ -149,10 +149,10 @@ module ddr3_cache (
                 end
                 else begin
                     // Write data to cache
-                    cache_data[index] <= write_data;
-                    cache_tag[index] <= tag;
-                    cache_valid[index] <= 1;
-                    cache_dirty[index] <= 1;
+                    cache_data[index*16+offset]    <= write_data;
+                    cache_tag[index*16+offset]     <= tag;
+                    cache_valid[index*16+offset]   <= 1;
+                    cache_dirty[index*16+offset]   <= 1;
                 end
             end
         end
