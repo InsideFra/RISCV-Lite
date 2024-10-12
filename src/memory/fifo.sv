@@ -16,6 +16,8 @@ module fifo_address #(
     reg [clog2(N)-1:0]  wr_ptr, rd_ptr;
     reg [clog2(N):0]    fifo_count;
 
+    integer i;
+
     always @(posedge clk) begin
         if (~rst_n) begin
             wr_ptr <= 0;
@@ -23,6 +25,11 @@ module fifo_address #(
             fifo_count <= 0;
             full <= 0;
             empty <= 1;
+
+            for (i=0; i < N; i += 1) begin
+                fifo_mem[i] <= 0;
+            end
+
         end else begin
             full <= (fifo_count == N);
             empty <= (fifo_count == 0);
@@ -34,7 +41,6 @@ module fifo_address #(
             end
             else begin
                 wr_ptr      <= 0;
-                fifo_count  <= fifo_count + 1;
             end
 
             if (rd_en && !empty) begin
@@ -43,7 +49,7 @@ module fifo_address #(
                 fifo_count <= fifo_count - 1;
             end
             else begin
-                data_out    <= '{default: 0};
+                data_out    <= 0;
                 rd_ptr      <= 0;
             end
         end
@@ -85,9 +91,11 @@ module fifo_address_data #(
     reg [clog2(N)-1:0]  wr_ptr, rd_ptr;
     reg [clog2(N):0]    fifo_count;
 
+    integer i;
+
     always @(posedge clk) begin
-        address_out <= '{default: 0};
-        data_out    <= '{default: 0};
+        address_out <= 0;
+        data_out    <= 0;
 
 
         if (~rst_n) begin
@@ -96,6 +104,10 @@ module fifo_address_data #(
             fifo_count <= 0;
             full <= 0;
             empty <= 1;
+            for (i=0; i < N; i += 1) begin
+                data_fifo_mem[i] <= 0;
+                address_fifo_mem[i] <= 0;
+            end
         end else begin
             full <= (fifo_count == N);
             empty <= (fifo_count == 0);

@@ -67,8 +67,8 @@ module ddr3_cache (
                     write_into_write_fifo_data <= {cache_data[index], cache_data[index+1], cache_data[index+2], cache_data[index+3]};
 
                     for (i = 0; i < 4; i = i + 1) begin
-                        cache_dirty[index+i] <= 1'b0;
-                        cache_valid[index+i] <= 1'b0;
+                        cache_dirty[index*16+i] <= 1'b0;
+                        cache_valid[index*16+i] <= 1'b0;
                     end
                 end
                 else begin

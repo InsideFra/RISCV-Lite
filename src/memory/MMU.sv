@@ -29,7 +29,8 @@ module ram (
     output reg  [0:0]   ddr3_ck_n,
     output reg  [0:0]   ddr3_cke,
     output reg  [1:0]   ddr3_dm,
-    output reg  [0:0]   ddr3_odt
+    output reg  [0:0]   ddr3_odt,
+    output reg          init_calib_complete
 );
 
     wire    sys_rst;
@@ -78,7 +79,6 @@ module ram (
     wire            ui_clk; // This UI clock must be a half or quarter of the DRAM clock.
     wire            ui_clk_sync_rst; // This is the active-High UI reset.
 
-    wire            init_calib_complete; // PHY asserts init_calib_complete when calibration is finished.
     wire    [11:0]  device_temp;
 
     mig_7series_0 u_mig_7series_0_mig (
@@ -113,8 +113,8 @@ module ram (
         .app_rdy                        (app_rdy),
         .app_wdf_rdy                    (app_wdf_rdy),
         .app_sr_req                     (1'b0),
-        .app_ref_req                    (app_ref_req),
-        .app_zq_req                     (app_zq_req),
+        .app_ref_req                    (1'b0),
+        .app_zq_req                     (1'b0),
         .app_sr_active                  (app_sr_active),
         .app_ref_ack                    (app_ref_ack),
         .app_zq_ack                     (app_zq_ack),
@@ -305,7 +305,7 @@ module ram (
 
     fifo_address #(
         .N(2048),
-        .WIDTH(31)
+        .WIDTH(32)
     ) read_in_fifo (
         .clk        (clk),
         .rst_n        (rst_n),

@@ -48,7 +48,8 @@ module ddr3_controller_fsm #(
     // FSM states
     typedef enum logic [3:0] {
         IDLE,
-        WRITE,
+        WRITE0,
+        WRITE1,
         READ0,
         READ1
     } state_t;
@@ -56,8 +57,8 @@ module ddr3_controller_fsm #(
     state_t state, next_state;
 
     // FSM: State transition
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n)
+    always_ff @(posedge clk) begin
+        if (!EN | !rst_n)
             state <= IDLE;
         else
             state <= next_state;
@@ -71,6 +72,11 @@ module ddr3_controller_fsm #(
                 if (read_in_fifo_empty == 1'b0) begin
                     if (app_rdy == 1'b1) begin
                         next_state = READ0;
+                    end
+                end
+                else if (write_fifo_empty == 1'b0) begin
+                    if (app_wdf_rdy == 1'b1) begin
+                        next_state = WRITE0;
                     end
                 end
             end
@@ -88,91 +94,48 @@ module ddr3_controller_fsm #(
                 end
             end
 
+            WRITE0: begin
+                next_state = WRITE1;
+            end
+
+            WRITE1: begin
+                if (write_fifo_empty == 1'b0) begin
+                    next_state = WRITE1;
+                end
+                else begin
+                    next_state = IDLE;
+                end
+            end
+
             default: begin
                 next_state = IDLE;
             end
-
-            // WRITE_CMD: begin
-            //     if (app_rdy && app_wdf_rdy)
-            //         next_state = WRITE_DATA;
-            // end
-
-            // WRITE_DATA: begin
-            //     if (app_wdf_rdy)
-            //         next_state = WAIT_WRITE_COMPLETE;
-            // end
-
-            // WAIT_WRITE_COMPLETE: begin
-            //     if (app_wdf_end)
-            //         next_state = DONE;
-            // end
-
-            // READ_CMD: begin
-            //     if (app_rdy)
-            //         next_state = WAIT_READ_DATA;
-            // end
-
-            // WAIT_READ_DATA: begin
-            //     if (app_rd_data_valid)
-            //         next_state = DONE;
-            // end
-
-            // DONE: begin
-            //     next_state = IDLE;
-            // end
         endcase
     end
 
     // FSM: Output logic and control signals
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            app_addr        <= 29'b0;
-            app_cmd         <= 3'b0;
-            app_en          <= 1'b0;
-            app_wdf_data    <= 128'b0;
-            app_wdf_wren    <= 1'b0;
-            app_wdf_mask    <= 16'hFF;
-            app_wdf_end     <= 1'b0;
+    always_ff @(posedge clk) begin
+        app_addr        <= 29'b0;
+        app_cmd         <= 3'b0;
+        app_en          <= 1'b0;
+        app_wdf_data    <= 128'b0;
+        app_wdf_wren    <= 1'b0;
+        app_wdf_mask    <= 16'hFFFF;
+        app_wdf_end     <= 1'b0;
 
-            read_in_fifo_read <= 1'b0;
+        read_in_fifo_read   <= 1'b0;
+        write_fifo_read     <= 1'b0;
+
+        read_out_fifo_address       <= 0;
+        read_out_fifo_address_write <= 1'b0;
+
+        if (!EN | !rst_n) begin
+            ;
         end else begin
-
-            app_en          <= 1'b0;
-            app_wdf_wren    <= 1'b0;
-
-            read_in_fifo_read   <= 1'b0;
-            write_fifo_read     <= 1'b0;
-
-            read_out_fifo_address       <= 0;
-            read_out_fifo_address_write <= 1'b0;
-
             case (state)
                 IDLE: begin
 
                 end
-
-                // WRITE_CMD: begin
-                //     if (app_rdy && app_wdf_rdy) begin
-                //         // app_addr <= addr_in;
-                //         app_cmd  <= CMD_WRITE;
-                //         app_en   <= 1'b1;
-                //     end
-                // end
-
-                // WRITE_DATA: begin
-                //     if (app_wdf_rdy) begin
-                //         // Assign the appropriate 32-bit data to the 64-bit bus
-                //         app_wdf_data <= write_fifo_data;
-                //         app_wdf_mask <= 8'hFF;
-                //         app_wdf_wren <= 1'b1;
-                //     end
-                // end
-
-                // WAIT_WRITE_COMPLETE: begin
-                //     // Wait for the write completion signal (app_wdf_end)
-                //     if (app_wdf_end) begin
-                //     end
-                // end
 
                 READ0: begin
                     read_in_fifo_read <= 1'b1;
@@ -200,18 +163,48 @@ module ddr3_controller_fsm #(
                         read_in_fifo_read <= 1'b0;
                     end
                 end
+
+                WRITE0: begin
+                    write_fifo_read <= 1'b1;
+                end
+
+                WRITE1: begin
+                    // if (app_rdy & app_wdf_rdy) begin
+                            // Assign the appropriate 32-bit data to the 64-bit bus
+                            app_wdf_data <= write_fifo_data;
+                            app_wdf_mask <= 16'hFFFF;
+                            app_wdf_wren <= 1'b1;
+
+                            app_addr <= write_fifo_address[28:0];
+                            app_cmd  <= CMD_WRITE;
+                            app_en   <= 1'b1;
+
+                            if (write_fifo_empty == 1'b0) begin
+                                write_fifo_read <= 1'b1;
+                            end
+                    // end
+                    else begin
+                        write_fifo_read <= 1'b0;
+                    end
+                end
             endcase
         end
     end
 
     always @(*) begin
-        if (app_rd_data_valid) begin
-            read_out_fifo_data          <= app_rd_data;
-            read_out_fifo_data_write    <= 1'b1;
-        end
-        else begin
+        if (EN == 1'b0) begin
             read_out_fifo_data          <= 0;
             read_out_fifo_data_write    <= 1'b0;
+        end
+        else begin
+            if (app_rd_data_valid) begin
+                read_out_fifo_data          <= app_rd_data;
+                read_out_fifo_data_write    <= 1'b1;
+            end
+            else begin
+                read_out_fifo_data          <= 0;
+                read_out_fifo_data_write    <= 1'b0;
+            end
         end
     end
 
