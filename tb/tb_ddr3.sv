@@ -37,7 +37,7 @@ module DP_DDR3();
 
         // Write data test
         // #500;
-        #200000
+        #120000
         ENABLE = 1;
 
         for(i=0; i < 256*4; i += 4) begin

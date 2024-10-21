@@ -50,6 +50,7 @@ module ddr3_controller_fsm #(
         IDLE,
         WRITE0,
         WRITE1,
+        WRITE2,
         READ0,
         READ1
     } state_t;
@@ -66,17 +67,22 @@ module ddr3_controller_fsm #(
 
     // FSM: State transition logic
     always_comb begin
+        write_fifo_read = 1'b0;
         next_state = state;
+
         case (state)
             IDLE: begin
-                if (read_in_fifo_empty == 1'b0) begin
-                    if (app_rdy == 1'b1) begin
-                        next_state = READ0;
-                    end
-                end
-                else if (write_fifo_empty == 1'b0) begin
+                // if (read_in_fifo_empty == 1'b0) begin
+                //     if (app_rdy == 1'b1) begin
+                //         next_state = READ0;
+                //     end
+                // end
+                if (write_fifo_empty == 1'b0) begin
                     if (app_wdf_rdy == 1'b1) begin
-                        next_state = WRITE0;
+                        if (app_rdy) begin
+                            next_state = WRITE1;
+                            write_fifo_read = 1'b1;
+                        end
                     end
                 end
             end
@@ -99,10 +105,15 @@ module ddr3_controller_fsm #(
             end
 
             WRITE1: begin
-                if (write_fifo_empty == 1'b0) begin
-                    next_state = WRITE1;
+                if (~app_rdy | ~app_wdf_rdy) begin
+                    // Was not possible to write
+                    write_fifo_read = 1'b0;
+                end
+                else if (~write_fifo_empty) begin
+                    write_fifo_read = 1'b1;
                 end
                 else begin
+                    write_fifo_read = 1'b0;
                     next_state = IDLE;
                 end
             end
@@ -124,7 +135,6 @@ module ddr3_controller_fsm #(
         app_wdf_end     <= 1'b0;
 
         read_in_fifo_read   <= 1'b0;
-        write_fifo_read     <= 1'b0;
 
         read_out_fifo_address       <= 0;
         read_out_fifo_address_write <= 1'b0;
@@ -165,26 +175,20 @@ module ddr3_controller_fsm #(
                 end
 
                 WRITE0: begin
-                    write_fifo_read <= 1'b1;
                 end
 
                 WRITE1: begin
-                    // if (app_rdy & app_wdf_rdy) begin
-                            // Assign the appropriate 32-bit data to the 64-bit bus
-                            app_wdf_data <= write_fifo_data;
-                            app_wdf_mask <= 16'hFFFF;
-                            app_wdf_wren <= 1'b1;
+                    // Assign the appropriate 32-bit data to the 64-bit bus
+                    app_wdf_data <= write_fifo_data;
+                    app_wdf_mask <= 16'hFFFF;
+                    app_wdf_wren <= 1'b1;
 
-                            app_addr <= write_fifo_address[28:0];
-                            app_cmd  <= CMD_WRITE;
-                            app_en   <= 1'b1;
+                    app_addr <= write_fifo_address[28:0];
+                    app_cmd  <= CMD_WRITE;
+                    app_en   <= 1'b1;
 
-                            if (write_fifo_empty == 1'b0) begin
-                                write_fifo_read <= 1'b1;
-                            end
-                    // end
-                    else begin
-                        write_fifo_read <= 1'b0;
+                    if (write_fifo_empty) begin
+                        app_wdf_end <= 1'b1;
                     end
                 end
             endcase
